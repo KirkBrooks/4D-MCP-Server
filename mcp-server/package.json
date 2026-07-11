@@ -1,0 +1,31 @@
+{
+  "name": "4d-data-mcp",
+  "version": "1.0.0",
+  "description": "Half A of the 4D Data MCP — an MCP stdio server that bridges MCP clients to a 4D-side POST /mcp data endpoint (wire contract v1)",
+  "type": "module",
+  "bin": {
+    "4d-data-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "node --test --import tsx test/unit.test.ts",
+    "test:integration": "node --test --import tsx test/integration.test.ts"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
