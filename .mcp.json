@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "4d-data": {
+      "command": "node",
+      "args": ["mcp-server/dist/index.js"],
+      "env": {
+        "FOURD_MCP_URL": "${FOURD_MCP_URL:-http://localhost:8044/mcp}",
+        "FOURD_MCP_TOKEN": "${FOURD_MCP_TOKEN}"
+      }
+    }
+  }
+}
