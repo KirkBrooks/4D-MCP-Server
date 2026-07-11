@@ -1,0 +1,6 @@
+# Throwaway test/server artifacts
+4d-mcp-server/test/_serverdata/
+4d-mcp-server/test_report.json
+
+# Stray/empty dev stubs
+4d-mcp-server/Project/Sources/Methods/_kb.4dm

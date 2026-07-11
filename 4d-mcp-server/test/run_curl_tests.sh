@@ -84,7 +84,7 @@ req "$FULL" "{\"v\":1,\"action\":\"delete_entity\",\"params\":{\"dataclass\":\"O
 check "delete_entity" 200 "data.deleted" "True"
 
 # 7. call_method (ping)
-req "$FULL" '{"v":1,"action":"call_method","params":{"name":"ping","args":{"hi":1}}}'
+req "$FULL" '{"v":1,"action":"call_method","params":{"name":"ping","args":["hello"]}}'
 check "call_method.ping" 200 "data.result.pong" "True"
 
 # 8. call_method (order_count)

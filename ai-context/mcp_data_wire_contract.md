@@ -74,6 +74,10 @@ The Bearer token resolves 4D-side to a **capability object**:
 
 **Gate order in the dispatcher, every request:**
 
+0. Deployment gates (Half B config, before the contract gates): unreadable
+   config → `INTERNAL`; component disabled / HTTPS required / config verb
+   disabled → `CAP_DENIED`; oversize body → `BAD_PARAMS`; per-token rate cap
+   → `RATE_LIMITED`.
 1. Token present & valid → else `AUTH_DENIED` (401).
 2. `v == 1` → else `BAD_VERSION` (400).
 3. `action` known → else `UNKNOWN_ACTION` (400).
@@ -112,9 +116,20 @@ Return the schema digest for dataclasses the token can `read`. Reuses the YAML/J
         { "name": "orders", "target": "Order", "kind": "one-to-many" }
       ]
     }
+  ],
+  "callable_actions": [
+    {
+      "name": "order_count",
+      "args": [ { "name": "status", "type": "text", "required": false,
+                  "purpose": "filter to one order status" } ],
+      "return": "object",
+      "purpose": "Count orders, optionally filtered by status"
+    }
   ]
 }
 ```
+
+`callable_actions` lists the `call_method` actions this token may call (the intersection of the server's `METHOD_WHITELIST` and the token's `call` capability), as client-facing specs — the underlying host method name is never included. Empty when `call_method` is disabled server-side or the token can call nothing.
 
 ---
 
@@ -250,22 +265,24 @@ Missing key → `NOT_FOUND`. Blocked by trigger/relation → `QUERY_ERROR`.
 
 ### 3.7 `call_method`
 
-Invoke a **pre-registered, whitelisted** operation. The client names an *action name*, never a 4D method name. 4D-side holds the map `{ action_name → class function }`; anything not in the map is unreachable.
+Invoke a **whitelisted host method**. The client names an *action name*, never a 4D method name. The 4D-side deployment config (`METHOD_WHITELIST`) holds the map `{ action_name → {method, args, return, purpose} }`, where `method` is a host project method executed via `EXECUTE METHOD`; anything not in the map is unreachable, and `method` never crosses the wire.
 
-**Capability:** `name` ∈ token `call` **and** `name` ∈ the 4D-side registry, else `CAP_DENIED`.
+`args` on the wire is a **collection, bound positionally** to the host method's parameters (4D method params are positional). The whitelist entry's `args` spec is ordered — each `{name, type, required, purpose}` with `type` ∈ `text|number|boolean|object|collection`; `name` is documentation for the client, position is what binds. Optional args are trailing-only. Arity/type violations against the spec → `BAD_PARAMS` (gate 4, before capability). Callable actions and their specs are discoverable per-token via `get_schema_digest.callable_actions` (§3.1).
+
+**Capability:** `name` ∈ token `call` **and** `name` ∈ `METHOD_WHITELIST`, else `CAP_DENIED`.
 
 **Request**
 ```json
 { "v": 1, "action": "call_method",
-  "params": { "name": "get_open_invoices", "args": { "customerID": 1 } } }
+  "params": { "name": "get_open_invoices", "args": [1] } }
 ```
 
-**Response `data`** — whatever the registered function returns (must be JSON-serializable), wrapped:
+**Response `data`** — whatever the host method returns (must be JSON-serializable), wrapped:
 ```json
 { "name": "get_open_invoices", "result": { "invoices": [ ] } }
 ```
 
-Registered function throws → `INTERNAL` (message from the 4D error), not the raw stack.
+Host method throws → `INTERNAL` (message from the 4D error), not the raw stack.
 
 ---
 
@@ -280,6 +297,7 @@ Registered function throws → `INTERNAL` (message from the 4D error), not the r
 | `CAP_DENIED`     | 403  | Token lacks capability for this action/dataclass.   |
 | `NOT_FOUND`      | 404  | Entity key / method name doesn't resolve.           |
 | `QUERY_ERROR`    | 422  | Valid request, 4D rejected it (filter/validation).  |
+| `RATE_LIMITED`   | 429  | Token exceeded the server's per-minute request cap. Retry after the current minute window. |
 | `INTERNAL`       | 500  | Unexpected 4D-side failure.                         |
 
 No codes outside this set. `message` is human-readable and safe to surface to the model; it must not leak stack traces or connection internals.
