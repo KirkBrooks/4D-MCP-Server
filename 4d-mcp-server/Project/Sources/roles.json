@@ -4,17 +4,6 @@
 	"privileges": [],
 	"roles": [],
 	"permissions": {
-		"allowed": [
-			{
-				"applyTo":"ds",
-				"type": "datastore",
-				"read": [],
-				"create": [],
-				"update": [],
-				"drop": [],
-				"execute": [],
-				"promote": []
-			}
-		]
+		"allowed": []
 	}
 }

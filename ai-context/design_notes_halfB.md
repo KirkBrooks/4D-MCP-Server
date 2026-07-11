@@ -45,6 +45,31 @@ headless suite (`MCP_RunHeadlessTests`).
    `WEB START SERVER`, `WEB Is server running` all raise `33 "Unimplemented
    command or function"`. So the HTTP/curl path can only be run under full 4D
    (4D Server / desktop). The logic layer was fully verified headless instead.
+   The curl suite runs against full 4D headless: `TOOL4D="/Applications/4D 20
+   R10/4D copy.app/Contents/MacOS/4D" ./test/start_server.sh`.
+
+5. **`roles.json` with a permission action listed as an empty array blocks
+   handler execution.** The project's default `roles.json` carried a datastore
+   permission entry with `"execute": []` (all actions empty) — full 4D then
+   refused `POST /mcp` with error 1656 *"No permission to execute the dispatch
+   function in the MCP_Handler singleton class"* (HTTP 401 with an `__ERROR`
+   body). Fix: `"permissions": {"allowed": []}` — an empty allowed list, not an
+   entry with empty action arrays. The `exposed` keyword is NOT the fix and is
+   explicitly not recommended for request handler functions.
+
+6. **Request handlers cannot see the client IP** (verified empirically, 20 R10):
+   `4D.IncomingMessage` has no peer-address property, `Session.info` is
+   undefined in web sessions, and `Process activity` is unavailable in the
+   handler context. Consequence: no `ALLOWED_IPS` config — IP filtering belongs
+   in the web server settings or a reverse proxy. `WEB Is secured connection`
+   DOES work inside handlers (basis of `REQUIRE_HTTPS`), and `Session` +
+   `Session.storage` are available (scalable sessions).
+
+7. **Per-token rate limiting lives in the component's `Storage`** (fixed
+   one-minute window). Singletons are stateless (quirk 1), and each component
+   gets its own `Storage`, so `Storage.mcpRate` is invisible to the host.
+   Exceeding the cap returns `RATE_LIMITED` (429) — the one code added to the
+   contract's original 8-code taxonomy (contract §4 updated).
 
 ## Schema digest — sourced from live ORDA, not the catalog file
 

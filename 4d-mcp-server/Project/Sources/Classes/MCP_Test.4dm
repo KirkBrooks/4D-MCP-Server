@@ -130,9 +130,10 @@ Function runAll() : Object
 	$res:=This._call($FULL; "delete_entity"; New object("dataclass"; "Order"; "key"; 999999))
 	This._ok($r; "delete_order_not_found"; ($res.status=404) && ($res.env.error.code="NOT_FOUND"))
 
-	// 15. call_method ping
-	$res:=This._call($FULL; "call_method"; New object("name"; "ping"; "args"; New object("hi"; 1)))
+	// 15. call_method ping — args are POSITIONAL (collection)
+	$res:=This._call($FULL; "call_method"; New object("name"; "ping"; "args"; New collection("hello")))
 	This._ok($r; "call_ping_200"; ($res.status=200) && ($res.env.data.result.pong=True) && ($res.env.data.name="ping"))
+	This._ok($r; "call_ping_echo_positional"; ($res.env.data.result.echo="hello"))
 
 	// 16. call_method order_count
 	$res:=This._call($FULL; "call_method"; New object("name"; "order_count"))
@@ -165,6 +166,94 @@ Function runAll() : Object
 	$res:=This._call($FULL; "query_entities"; New object)
 	This._ok($r; "bad_params_400"; ($res.status=400) && ($res.env.error.code="BAD_PARAMS"))
 
+	// 23. config verb gates — patch the host config between calls (the loader
+	// reads on demand, so each patch is live immediately), restore afterwards.
+	// Gate 5 runs before execute, so delete-with-bogus-key must be CAP_DENIED,
+	// not NOT_FOUND. All checks use $FULL: the token allows everything, so any
+	// denial can only come from the config gate.
+	var $cfgFile : 4D.File
+	$cfgFile:=Folder(fk database folder; *).file("Project/Sources/4D-mcp-config.pref")
+	var $cfgOrig : Text
+	$cfgOrig:=$cfgFile.getText()
+
+	This._patchConfig($cfgFile; $cfgOrig; "ENABLED"; False)
+	$res:=This._call($FULL; "query_entities"; New object("dataclass"; "Customer"))
+	This._ok($r; "config_disabled_capdenied"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	This._patchConfig($cfgFile; $cfgOrig; "ALLOW_READ"; False)
+	$res:=This._call($FULL; "query_entities"; New object("dataclass"; "Customer"))
+	This._ok($r; "config_read_off_capdenied"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	This._patchConfig($cfgFile; $cfgOrig; "ALLOW_WRITE"; False)
+	$res:=This._call($FULL; "create_entity"; New object("dataclass"; "Order"; \
+		"values"; New object("customerID"; $acmeID; "total"; 1; "status"; "new")))
+	This._ok($r; "config_write_off_capdenied"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	This._patchConfig($cfgFile; $cfgOrig; "ALLOW_DELETE"; False)
+	$res:=This._call($FULL; "delete_entity"; New object("dataclass"; "Order"; "key"; 999999))
+	This._ok($r; "config_delete_off_capdenied"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	This._patchConfig($cfgFile; $cfgOrig; "ALLOW_CALL_METHOD"; False)
+	$res:=This._call($FULL; "call_method"; New object("name"; "ping"))
+	This._ok($r; "config_call_off_capdenied"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	This._patchConfig($cfgFile; $cfgOrig; "METHOD_WHITELIST"; \
+		New object("order_count"; New object("method"; "MCP_Fixture_OrderCount")))
+	$res:=This._call($FULL; "call_method"; New object("name"; "ping"))
+	This._ok($r; "config_whitelist_subset_capdenied"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	$cfgFile.setText($cfgOrig)
+	$res:=This._call($FULL; "query_entities"; New object("dataclass"; "Customer"))
+	This._ok($r; "config_restored_200"; ($res.status=200) && ($res.env.ok=True))
+
+	// 24. transport gates + rate limit — pure helpers, testable headless.
+	// dispatch() itself needs a real web server; the curl suite covers it.
+	var $tcfg : Object
+	$tcfg:=New object("REQUIRE_HTTPS"; True; "MAX_BODY_SIZE"; 100)
+	$res:=cs.MCP_Handler.me._checkTransport($tcfg; False; 10)
+	This._ok($r; "transport_https_required_denied"; ($res#Null) && ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+	$res:=cs.MCP_Handler.me._checkTransport($tcfg; True; 10)
+	This._ok($r; "transport_https_ok_passes"; ($res=Null))
+	$res:=cs.MCP_Handler.me._checkTransport($tcfg; True; 101)
+	This._ok($r; "transport_body_oversize_badparams"; ($res#Null) && ($res.status=400) && ($res.env.error.code="BAD_PARAMS"))
+
+	// Rate limit: fixed one-minute window; can misfire only if the test
+	// straddles a minute boundary between these five calls (vanishingly rare).
+	var $i : Integer
+	var $rateOK : Boolean
+	$rateOK:=True
+	For ($i; 1; 3)
+		$rateOK:=$rateOK && cs.MCP_Handler.me._checkRate("tok_test_rate"; 3)
+	End for
+	This._ok($r; "rate_under_limit_allowed"; $rateOK)
+	This._ok($r; "rate_over_limit_denied"; (Not(cs.MCP_Handler.me._checkRate("tok_test_rate"; 3))))
+	This._ok($r; "rate_zero_unlimited"; cs.MCP_Handler.me._checkRate("tok_test_rate"; 0))
+	This._ok($r; "rate_other_token_unaffected"; cs.MCP_Handler.me._checkRate("tok_test_other"; 3))
+
+	// 25. call_method arg-spec validation (gate 4) + digest discovery.
+	// echo_upper's spec: one REQUIRED text arg.
+	$res:=This._call($FULL; "call_method"; New object("name"; "echo_upper"; "args"; New collection("hello")))
+	This._ok($r; "call_echo_upper_200"; ($res.status=200) && ($res.env.data.result.upper="HELLO"))
+
+	$res:=This._call($FULL; "call_method"; New object("name"; "echo_upper"))
+	This._ok($r; "call_missing_required_badparams"; ($res.status=400) && ($res.env.error.code="BAD_PARAMS"))
+
+	$res:=This._call($FULL; "call_method"; New object("name"; "echo_upper"; "args"; New collection(42)))
+	This._ok($r; "call_wrong_type_badparams"; ($res.status=400) && ($res.env.error.code="BAD_PARAMS"))
+
+	$res:=This._call($FULL; "call_method"; New object("name"; "ping"; "args"; New collection("a"; "b")))
+	This._ok($r; "call_too_many_args_badparams"; ($res.status=400) && ($res.env.error.code="BAD_PARAMS"))
+
+	// digest: full token sees the 3 fixture actions, spec sans host method name
+	$res:=This._call($FULL; "get_schema_digest"; New object)
+	This._ok($r; "digest_callable_actions_3"; ($res.env.data.callable_actions.length=3))
+	This._ok($r; "digest_callable_no_method_leak"; ($res.env.data.callable_actions[0].method=Null))
+	This._ok($r; "digest_callable_has_purpose"; (Length(String($res.env.data.callable_actions[0].purpose))>0))
+
+	// digest: ro token (empty call capability) sees none
+	$res:=This._call($RO; "get_schema_digest"; New object)
+	This._ok($r; "digest_callable_ro_empty"; ($res.env.data.callable_actions.length=0))
+
 	// tally
 	var $passed : Integer
 	$passed:=0
@@ -185,3 +274,11 @@ Function _call($token : Text; $action : Text; $params : Object) : Object
 
 Function _ok($r : Object; $name : Text; $cond : Boolean)
 	$r.cases.push(New object("name"; $name; "pass"; ($cond=True)))
+
+// _patchConfig: rewrite the host config file with ONE setting changed from the
+// pristine original (patches never stack). Used by the config-gate cases.
+Function _patchConfig($file : 4D.File; $orig : Text; $key : Text; $value : Variant)
+	var $cfg : Object
+	$cfg:=JSON Parse($orig)
+	$cfg[$key].value:=$value
+	$file.setText(JSON Stringify($cfg))

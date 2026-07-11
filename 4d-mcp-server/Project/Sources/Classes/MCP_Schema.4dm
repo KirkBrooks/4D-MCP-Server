@@ -9,25 +9,64 @@
 shared singleton Class constructor()
 
 // digest: filtered to $cap.read. A dataclass in the read list that no longer
-// exists in the datastore is silently skipped.
+// exists in the datastore is silently skipped. callable_actions lists the
+// METHOD_WHITELIST entries the token may call — the spec minus the host
+// `method` name, which never crosses the wire.
 Function digest($cap : Object) : Object
 	var $result : Object
 	$result:=New object("dataclasses"; New collection)
 	var $readable : Collection
 	$readable:=$cap.read
-	if ($readable=Null)
-		return $result
+	if ($readable#Null)
+		var $name : Text
+		For each ($name; $readable)
+			var $dc : 4D.DataClass
+			$dc:=ds[$name]
+			if ($dc=Null)
+				continue
+			end if
+			$result.dataclasses.push(This._dataclassDigest($name))
+		End for each
+	end if
+	$result.callable_actions:=This._callableActions($cap)
+	return $result
+
+// _callableActions: the intersection of the config METHOD_WHITELIST and the
+// token's call capability, as client-facing specs {name, args, return, purpose}.
+Function _callableActions($cap : Object) : Collection
+	var $out : Collection
+	$out:=New collection
+	var $config : Object
+	$config:=cs.MCP_Handler.me.getConfig()
+	if ($config=Null)
+		return $out
+	end if
+	if (Not(Bool($config.ALLOW_CALL_METHOD)))
+		return $out
+	end if
+	if (Value type($config.METHOD_WHITELIST)#Is object)
+		return $out
+	end if
+	var $callable : Collection
+	$callable:=$cap.call
+	if ($callable=Null)
+		return $out
 	end if
 	var $name : Text
-	For each ($name; $readable)
-		var $dc : 4D.DataClass
-		$dc:=ds[$name]
-		if ($dc=Null)
+	For each ($name; $config.METHOD_WHITELIST)
+		if ($callable.indexOf($name)<0)
 			continue
 		end if
-		$result.dataclasses.push(This._dataclassDigest($name))
+		var $spec : Object
+		$spec:=$config.METHOD_WHITELIST[$name]
+		var $entry : Object
+		$entry:=New object("name"; $name)
+		$entry.args:=$spec.args
+		$entry.return:=$spec.return
+		$entry.purpose:=$spec.purpose
+		$out.push($entry)
 	End for each
-	return $result
+	return $out
 
 // $name is the dataclass name. Attribute objects are accessed dynamically via
 // ds[$name][$key] — bracket access directly on a DataClass (ds.X[$key]) throws

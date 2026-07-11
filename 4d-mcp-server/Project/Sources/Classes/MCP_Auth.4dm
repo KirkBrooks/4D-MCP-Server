@@ -38,7 +38,7 @@ Function _loadTokens() : Object
 		"token_id"; "tok_full"; \
 		"read"; New collection("Customer"; "Order"); \
 		"write"; New collection("Order"); \
-		"call"; New collection("ping"; "order_count"))
+		"call"; New collection("ping"; "order_count"; "echo_upper"))
 	// Read-only, Customer only: no write, no call.
 	$t["SECRET_RO"]:=New object(\
 		"token_id"; "tok_ro"; \

@@ -20,13 +20,6 @@ shared singleton Class constructor()
 Function _HARD_CAP() : Integer
 	return 80
 
-// _registry: call_method map, action_name -> class function name.
-// The client names an action_name only; anything absent here is unreachable.
-Function _registry() : Object
-	return New object(\
-		"ping"; "action_ping"; \
-		"order_count"; "action_order_count")
-
 // =============================================================================
 //  query_entities  (3.2)
 // =============================================================================
@@ -256,45 +249,59 @@ Function delete_entity($params : Object) : Object
 // =============================================================================
 //  call_method  (3.7)
 // =============================================================================
-Function hasAction($name : Text) : Boolean
-	return (This._registry()[$name]#Null)
-
+// The action map lives in the deployment config (METHOD_WHITELIST): action
+// name -> {method, args:[{name,type,required,purpose}], return, purpose}.
+// `method` is a HOST project method invoked via EXECUTE METHOD with the
+// request's args bound POSITIONALLY (4D method params are positional; the
+// spec's arg names are documentation for the client). Anything not in the
+// map is unreachable. Arity/type validation happens in MCP_Handler gate 4;
+// this function owns only execution.
 Function call_method($params : Object) : Object
 	var $name : Text
 	$name:=String($params.name)
-	var $reg : Object
-	$reg:=This._registry()
-	if ($reg[$name]=Null)
-		return This._err("NOT_FOUND"; "Unknown action: "+$name)
+	var $spec : Object
+	$spec:=Null
+	var $config : Object
+	$config:=cs.MCP_Handler.me.getConfig()
+	if ($config#Null)
+		if (Value type($config.METHOD_WHITELIST)=Is object)
+			$spec:=$config.METHOD_WHITELIST[$name]
+		end if
 	end if
-	var $fn : Text
-	$fn:=String($reg[$name])
-	var $args : Object
-	$args:=$params.args
-	if ($args=Null)
-		$args:=New object
+	if ($spec=Null)
+		return This._err("CAP_DENIED"; "Action not enabled in server config: "+$name)
+	end if
+	var $method : Text
+	$method:=String($spec.method)
+	var $args : Collection
+	$args:=New collection
+	if (Value type($params.args)=Is collection)
+		$args:=$params.args
 	end if
 	var $result : Variant
 	Try
-		$result:=This[$fn]($args)
+		Case of
+			: ($args.length=0)
+				EXECUTE METHOD($method; $result)
+			: ($args.length=1)
+				EXECUTE METHOD($method; $result; $args[0])
+			: ($args.length=2)
+				EXECUTE METHOD($method; $result; $args[0]; $args[1])
+			: ($args.length=3)
+				EXECUTE METHOD($method; $result; $args[0]; $args[1]; $args[2])
+			: ($args.length=4)
+				EXECUTE METHOD($method; $result; $args[0]; $args[1]; $args[2]; $args[3])
+			: ($args.length=5)
+				EXECUTE METHOD($method; $result; $args[0]; $args[1]; $args[2]; $args[3]; $args[4])
+			: ($args.length=6)
+				EXECUTE METHOD($method; $result; $args[0]; $args[1]; $args[2]; $args[3]; $args[4]; $args[5])
+			else
+				return This._err("BAD_PARAMS"; "Too many args (max 6)")
+		End case
 	Catch
 		return This._err("INTERNAL"; This._lastErrorText())
 	End try
 	return New object("data"; New object("name"; $name; "result"; $result))
-
-// --- Registered actions (whitelisted via _registry) -------------------------
-
-Function action_ping($args : Object) : Object
-	return New object("pong"; True; "echo"; $args)
-
-Function action_order_count($args : Object) : Object
-	var $out : Object
-	$out:=New object("count"; ds.Order.all().length)
-	if ($args.customerID#Null)
-		$out.count:=ds.Order.query("customerID = :1"; $args.customerID).length
-		$out.customerID:=$args.customerID
-	end if
-	return $out
 
 // --- Helpers ----------------------------------------------------------------
 
