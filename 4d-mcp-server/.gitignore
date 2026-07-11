@@ -1,0 +1,21 @@
+# Data folder
+[dD][aA][tT][aA]/
+
+# Derived data
+DerivedData/
+
+# Libraries
+Libraries/
+
+# User preferences
+userPreferences.*/
+
+Project/Trash
+
+.specstory/
+
+# System files
+.DS_Store
+ehthumbs.db
+Thumbs.db
+*.env

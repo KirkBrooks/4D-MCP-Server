@@ -1,0 +1,8 @@
+[
+	{
+		"class": "MCP_Handler",
+		"method": "dispatch",
+		"verbs": "post",
+		"regexPattern": "/mcp"
+	}
+]
