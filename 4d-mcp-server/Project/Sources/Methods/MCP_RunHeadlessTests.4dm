@@ -16,6 +16,6 @@ var $file : 4D.File
 $file:=File("/PACKAGE/test_report.json")
 $file.setText(JSON Stringify($report; *))
 
-LOG EVENT(Into system standard outputs; "MCP_TEST "+String($report.passed)+"/"+String($report.total)+" passed, "+String($report.failed)+" failed"+Char(Line feed))
+log_worker("MCP_TEST "+String($report.passed)+"/"+String($report.total)+" passed, "+String($report.failed)+" failed"+Char(Line feed))
 
 QUIT 4D

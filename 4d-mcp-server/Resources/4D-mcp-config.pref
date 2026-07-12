@@ -8,6 +8,10 @@
 		"comment": "Master switch. false = the component loads but answers nothing.",
 		"value": true
 	},
+	"HTTP_PORT": {
+		"comment": "Port for the component's own web server, started by MCP_Initialize_Host. 0 = don't start one (serve /mcp from the host's web server instead). Read at startup only — changing it needs a restart, unlike the other settings.",
+		"value": 8044
+	},
 
 	"ALLOW_READ": {
 		"comment": "Gates get_schema_digest, query_entities, get_entity.",
