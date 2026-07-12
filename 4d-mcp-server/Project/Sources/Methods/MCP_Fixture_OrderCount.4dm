@@ -1,3 +1,4 @@
+//%attributes = {"shared":true}
 // MCP_Fixture_OrderCount — HOST fixture method exposed via METHOD_WHITELIST
 // as "order_count". Optional positional arg 1: status text to filter by.
 #DECLARE($status : Text) : Object

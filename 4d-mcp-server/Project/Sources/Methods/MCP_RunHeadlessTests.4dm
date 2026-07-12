@@ -1,9 +1,11 @@
+//%attributes = {}
 // MCP_RunHeadlessTests — headless self-test entry point.
 // Run with:  tool4d --project <..> --opening-mode interpreted \
 //              --startup-method MCP_RunHeadlessTests --create-data --data <path>
 // Writes /PACKAGE/test_report.json and prints a one-line summary to stdout.
 
 var $report : Object
+
 Try
 	$report:=cs.MCP_Test.me.runAll()
 Catch

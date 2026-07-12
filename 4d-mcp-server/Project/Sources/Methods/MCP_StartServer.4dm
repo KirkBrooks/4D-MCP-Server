@@ -1,3 +1,4 @@
+//%attributes = {"shared":true}
 // MCP_StartServer — seed fixtures and start the web server so the POST /mcp
 // handler is reachable for curl testing. The server stays up (no QUIT).
 // Run with:  tool4d --project <..> --opening-mode interpreted \
