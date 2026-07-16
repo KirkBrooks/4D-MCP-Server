@@ -95,7 +95,7 @@
 		"value": ""
 	},
 	"ON_REQUEST_CALL": {
-		"comment": "Name of a host method called for each request with {action, token_id}; return {deny: true, message: \"...\"} to refuse the request (CAP_DENIED). Hook errors never block traffic. Empty = none.",
+		"comment": "Name of a host method called for each request that already carries a valid, resolved token (requests with a missing/invalid token skip this hook and get AUTH_DENIED instead) with {action, token_id}; return {deny: true, message: \"...\"} to refuse the request (CAP_DENIED). Hook errors never block traffic. Empty = none.",
 		"value": ""
 	}
 }

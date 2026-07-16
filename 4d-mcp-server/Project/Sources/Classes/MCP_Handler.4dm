@@ -149,8 +149,11 @@ Function _checkRate($tokenId : Text; $limit : Integer) : Boolean
 	return $allowed
 
 // _requestHook: calls the host method named by ON_REQUEST_CALL with
-// {action, token_id}. If the method returns {deny: true {; message}} the
-// request is refused with CAP_DENIED. Hook errors never block traffic.
+// {action, token_id}. Only invoked by dispatch() once the Bearer token has
+// already resolved to a valid capability (gate 1 outranks this hook; see the
+// call site) — $tokenId is therefore always the resolved token_id here, never
+// "". If the method returns {deny: true {; message}} the request is refused
+// with CAP_DENIED. Hook errors never block traffic.
 Function _requestHook($config : Object; $body : Object; $tokenId : Text) : Object
 	var $name : Text
 	$name:=String($config.ON_REQUEST_CALL)
