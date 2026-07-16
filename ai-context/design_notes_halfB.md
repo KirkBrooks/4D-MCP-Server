@@ -111,6 +111,21 @@ total, truncated, clamped}`; `truncated = (offset+count) < total`.
 - **"8 actions"** — the contract (§3.1–3.7) defines **7** action types. Tests
   cover all 7, exercising `call_method` twice (`ping` + `order_count`) = 8
   invocations, which is the most sensible reading of "each of the 8 actions."
+- **Gate 0 vs. gate 5 for config verb gates (settled 2026-07-16)** — an
+  adversarial review pass on `MCP_Handler.4dm` initially escalated whether
+  `ALLOW_READ` / `ALLOW_WRITE` / `ALLOW_DELETE` / `ALLOW_CALL_METHOD` /
+  `METHOD_WHITELIST` belong at gate 0 (as §2's original wording grouped them,
+  alongside `ENABLED`/HTTPS/rate-limit) or gate 5 (where the code actually
+  checks them, via `_checkConfigGate`). Gate 0 cannot depend on which verb is
+  being requested — the action isn't parsed until gate 3 — so grouping the
+  config verb gates there was a contract wording bug, not a code bug. §2 has
+  been corrected: gate 0 is now scoped to verb-agnostic deployment checks only
+  (config readable, `ENABLED`, HTTPS, body size, rate cap); the config verb
+  gates are documented as running at gate 5, ahead of the token's own
+  capability list. `ENABLED` itself *was* a genuine gate-0 ordering bug in
+  `dispatch()` (it ran after the rate-limit check and request hook) and was
+  fixed in code (commit `75b73bd`) — that fix stands independent of this
+  wording correction.
 - No other contract deviations. Envelopes, gate order, and the error taxonomy
   (code+message only — no `details`/`retryable`) are implemented exactly as
   written.

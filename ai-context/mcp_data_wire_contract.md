@@ -74,15 +74,21 @@ The Bearer token resolves 4D-side to a **capability object**:
 
 **Gate order in the dispatcher, every request:**
 
-0. Deployment gates (Half B config, before the contract gates): unreadable
-   config → `INTERNAL`; component disabled / HTTPS required / config verb
-   disabled → `CAP_DENIED`; oversize body → `BAD_PARAMS`; per-token rate cap
-   → `RATE_LIMITED`.
+0. Deployment gates (Half B config, before the contract gates, verb-agnostic —
+   these never depend on which action is requested, so they run before the
+   action is even parsed): unreadable config → `INTERNAL`; component disabled
+   / HTTPS required → `CAP_DENIED`; oversize body → `BAD_PARAMS`; per-token
+   rate cap → `RATE_LIMITED`.
 1. Token present & valid → else `AUTH_DENIED` (401).
 2. `v == 1` → else `BAD_VERSION` (400).
 3. `action` known → else `UNKNOWN_ACTION` (400).
 4. `params` well-formed → else `BAD_PARAMS` (400).
 5. Capability check for the specific action → else `CAP_DENIED` (403).
+   Deployment-level config verb gates (`ALLOW_READ` / `ALLOW_WRITE` /
+   `ALLOW_DELETE` / `ALLOW_CALL_METHOD`, `METHOD_WHITELIST`) are checked here,
+   ahead of the token's own capability list — they gate on which *verb* is
+   being requested, which isn't known until gate 3 resolves the action, so
+   they cannot run at gate 0.
 6. Execute → success or `NOT_FOUND` / `QUERY_ERROR` / `INTERNAL`.
 
 ---
