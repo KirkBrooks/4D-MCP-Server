@@ -126,6 +126,16 @@ total, truncated, clamped}`; `truncated = (offset+count) < total`.
   `dispatch()` (it ran after the rate-limit check and request hook) and was
   fixed in code (commit `75b73bd`) — that fix stands independent of this
   wording correction.
+- **`BAD_PARAMS` vs. `BAD_VERSION` on a malformed/absent body (settled
+  2026-07-16)** — a re-review flagged that `handle()` returns `BAD_PARAMS`
+  for a `Null`/non-object body before gate 2 (`v == 1`) ever runs, and asked
+  whether the contract's silence on this ordering was a gap. Resolved as
+  `BAD_PARAMS`-wins by design, not by accident: `v == 1` is a claim about the
+  *value* of a field that only exists once the body has parsed into an
+  object, so a request that never reaches that structural precondition can't
+  fail the version check — it fails a more fundamental one. §2 gate 2 now
+  states this explicitly. No code change was needed; `handle()` already
+  implemented this ordering.
 - No other contract deviations. Envelopes, gate order, and the error taxonomy
   (code+message only — no `details`/`retryable`) are implemented exactly as
   written.

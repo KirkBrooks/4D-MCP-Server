@@ -80,7 +80,11 @@ The Bearer token resolves 4D-side to a **capability object**:
    / HTTPS required → `CAP_DENIED`; oversize body → `BAD_PARAMS`; per-token
    rate cap → `RATE_LIMITED`.
 1. Token present & valid → else `AUTH_DENIED` (401).
-2. `v == 1` → else `BAD_VERSION` (400).
+2. Body is a parseable JSON object, and `v == 1` → else, respectively,
+   `BAD_PARAMS` (400) or `BAD_VERSION` (400). `v == 1` only has a truth value
+   once the body has been parsed into an object with a `v` field to inspect —
+   a missing/non-JSON/non-object body fails on that structural precondition,
+   not on the version comparison, so it gets `BAD_PARAMS`, never `BAD_VERSION`.
 3. `action` known → else `UNKNOWN_ACTION` (400).
 4. `params` well-formed → else `BAD_PARAMS` (400).
 5. Capability check for the specific action → else `CAP_DENIED` (403).
