@@ -88,10 +88,17 @@ Function dispatch($request : 4D.IncomingMessage) : 4D.OutgoingMessage
 	end if
 
 	// --- ON_REQUEST_CALL: host observe/veto hook ---
-	var $veto : Object
-	$veto:=This._requestHook($config; $body; $tokenId)
-	if ($veto#Null)
-		return This._finish($config; $veto; $body; $tokenId; $t0)
+	// Only invoked once the token has resolved to a valid capability (wire
+	// contract 2 gate 1 outranks this hook): a missing/invalid token must
+	// fall through to handle(), which 401s it, rather than being vetoed here
+	// with a 403 CAP_DENIED. Mirrors the rate-limit check above, which skips
+	// accounting for unresolved tokens for the same reason.
+	if ($cap#Null)
+		var $veto : Object
+		$veto:=This._requestHook($config; $body; $tokenId)
+		if ($veto#Null)
+			return This._finish($config; $veto; $body; $tokenId; $t0)
+		end if
 	end if
 
 	var $result : Object
