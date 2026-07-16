@@ -38,6 +38,14 @@ Function dispatch($request : 4D.IncomingMessage) : 4D.OutgoingMessage
 		return This._respond(500; This._fail(500; "INTERNAL"; "Server configuration unavailable").env)
 	end if
 
+	// --- Gate 0: deployment ENABLED, checked before any other dispatch-level
+	// gate (rate limit, request hook) per wire contract 2: a disabled
+	// deployment answers nothing, valid token or not. handle() re-checks this
+	// as defense-in-depth for direct (non-HTTP) callers.
+	if (Not(Bool($config.ENABLED)))
+		return This._finish($config; This._fail(403; "CAP_DENIED"; "MCP component is disabled"); Null; ""; $t0)
+	end if
+
 	var $bodyText : Text
 	$bodyText:=""
 	Try
