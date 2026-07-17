@@ -12,7 +12,7 @@ Requires **4D 20 R8+** (HTTP request handlers). Ordered-source project.
 
 | File | Role |
 |------|------|
-| `Project/Sources/HTTPHandlers.json` | Registers `POST /mcp` → `MCP_Handler.dispatch` |
+| `Project/Sources/HTTPHandlers.json` | Registers `POST /mcp` → `MCP_Handler.dispatch` — **standalone only**: 4D loads this file only for the main web server, never for a component's own. Embedded, the same handler is registered programmatically by `MCP_Initialize_Host` |
 | `Project/Sources/Classes/MCP_Handler.4dm` | Dispatcher: gate order, envelopes, HTTP adapter |
 | `Project/Sources/Classes/MCP_Auth.4dm` | Token → capability object (swappable store) |
 | `Project/Sources/Classes/MCP_Schema.4dm` | `get_schema_digest` from ORDA introspection |
@@ -21,6 +21,7 @@ Requires **4D 20 R8+** (HTTP request handlers). Ordered-source project.
 | `Project/Sources/Methods/MCP_RunHeadlessTests.4dm` | Headless test entry point |
 | `Project/Sources/Methods/MCP_Initialize_Host.4dm` | Host startup entry: ensures config, starts the component's own web server on `HTTP_PORT` |
 | `Project/Sources/Methods/MCP_StartServer.4dm` | Test entry: seeds fixtures, then runs `MCP_Initialize_Host` (curl) |
+| `Project/Sources/Methods/MCP_Build.4dm` | Headless compile entry point for tool4d (`Compile project` from disk; see "Building the component") |
 | `Project/Sources/catalog.4DCatalog` | Fixture schema: `Customer`, `Order` (+ relation) |
 | `Resources/4D-mcp-config.pref` | Component's default deployment config; copied to the host's `Project/Sources/` on first read (edit it there) |
 | `test/run_curl_tests.sh` | Exercises every action over real HTTP |
@@ -29,6 +30,18 @@ Requires **4D 20 R8+** (HTTP request handlers). Ordered-source project.
 All four production classes are **shared singletons** and **stateless** — see
 `design_notes_halfB.md` for why (this 4D build rejects mutable state on a shared
 singleton's `This`).
+
+## Building the component
+
+**Compile before you build.** `Settings/buildApp.4DSettings` has
+`BuildCompiled=False`, so Build Application packages whatever compiled code
+already sits in `Project/DerivedData/CompiledCode/` — it does **not**
+recompile. Edit source, skip Compile, and the build silently ships stale code.
+In the IDE: Compile, then Build. Headless: run `MCP_Build` under tool4d
+(compiles from disk; `BUILD APPLICATION` is a silent no-op under tool4d, so
+packaging must be done outside 4D — swap the fresh `CompiledCode/` into the
+`.4DZ`, copy `Libraries/lib4d-arm64.dylib` into the `.4dbase`, re-sign with
+`codesign --force --deep -s -`).
 
 ## Installing the component
 
@@ -40,7 +53,15 @@ folder, then call `MCP_Initialize_Host` from the host's startup
    (copies the component's default on first read — same path `getConfig()` uses).
 2. Starts the **component's own web server** (`WEB Server` object) on the
    config's `HTTP_PORT` (default 8044; set `0` to skip and serve `/mcp` from
-   the host's web server instead). Returns `{success; port; message}`.
+   the host's web server instead), registering the `/mcp` handler
+   **programmatically** in the `start()` settings — required because 4D only
+   loads `HTTPHandlers.json` for the main web server, never for a component's
+   (design_notes quirk 8). Returns `{success; port; message}`.
+
+Known wrinkle: after closing/reopening the host project within one 4D
+instance, the start can report success without the port actually being bound;
+re-run `MCP_Initialize_Host` if `/mcp` refuses connections (quirk 10,
+TODO.md).
 
 The component's classes stay internal — no exposure to the host is needed;
 `MCP_Initialize_Host` (shared) is the only entry point. The host's dataclasses

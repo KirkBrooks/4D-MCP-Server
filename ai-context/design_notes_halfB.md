@@ -71,6 +71,38 @@ headless suite (`MCP_RunHeadlessTests`).
    Exceeding the cap returns `RATE_LIMITED` (429) — the one code added to the
    contract's original 8-code taxonomy (contract §4 updated).
 
+8. **`HTTPHandlers.json` is only loaded by the MAIN web server of the project
+   that owns it** (4D docs, confirmed empirically on 21.1). A component's own
+   `WEB Server` object never reads the file — so the compiled component in a
+   host answered `405` on `POST /mcp` even though the file was inside the
+   `.4DZ`. Fix: `MCP_Initialize_Host` passes the handler programmatically via
+   the `handlers` collection in `webServer.start()` settings
+   (`{class: "MCP_Handler"; method: "dispatch"; verbs: "post"; regexPattern: "/mcp"}`),
+   which the docs support "for any web server object". The JSON file is kept
+   for the standalone case (where this project IS the main project); when both
+   are present the programmatic settings win. Verified compiled-in-host on
+   4D 21.1 against live host data.
+
+9. **Build Application does NOT compile when `BuildCompiled` is `False`**
+   (`Settings/buildApp.4DSettings`). It packages whatever compiled code
+   already sits in `Project/DerivedData/CompiledCode/` — edit source, forget
+   to Compile, and the build silently ships stale code (bit us twice on
+   2026-07-17). Always Compile before Build, or enable "Build compiled
+   structure". Headless alternative: `MCP_Build` (startup method for tool4d)
+   runs `Compile project` from disk; `BUILD APPLICATION` is a silent no-op
+   under tool4d, so packaging is done outside 4D — swap the fresh
+   `CompiledCode/` into the `.4DZ`, copy `Libraries/lib4d-arm64.dylib` into
+   the `.4dbase`, then `codesign --force --deep -s -`.
+
+10. **The component web server can log "listening" without actually being
+    bound.** After closing/reopening the host project within the same 4D
+    instance, `webServer.start()` returned success and `log_worker` recorded
+    "MCP server listening", yet nothing was bound on the port (connection
+    refused; the previous session's socket had not released — the bind
+    appears to happen asynchronously after `start()` returns). Re-running
+    `MCP_Initialize_Host` fixed it (`isRunning` was false, so it started
+    cleanly). See TODO: add a post-start probe/retry.
+
 ## Schema digest — sourced from live ORDA, not the catalog file
 
 `get_schema_digest` reads the running datastore (`dataClass.getInfo()` →
