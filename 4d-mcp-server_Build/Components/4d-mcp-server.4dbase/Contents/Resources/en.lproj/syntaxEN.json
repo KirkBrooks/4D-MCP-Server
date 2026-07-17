@@ -1,0 +1,313 @@
+{
+	"_method_": {
+		"MCP_Initialize_Host": {
+			"Syntax": "**MCP_Initialize_Host**() : Object",
+			"Params": [
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"MCP_Fixture_Ping": {
+			"Syntax": "**MCP_Fixture_Ping**( *echo* : Text ) : Object",
+			"Params": [
+				[
+					"echo",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"MCP_Fixture_EchoUpper": {
+			"Syntax": "**MCP_Fixture_EchoUpper**( *text* : Text ) : Object",
+			"Params": [
+				[
+					"text",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"MCP_StartServer": {
+			"Syntax": "**MCP_StartServer**() : Variant",
+			"Params": [
+				[
+					"",
+					"Variant",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"MCP_Fixture_OrderCount": {
+			"Syntax": "**MCP_Fixture_OrderCount**( *status* : Text ) : Object",
+			"Params": [
+				[
+					"status",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		}
+	},
+	"cs.mcp4d": {
+		"MCP_Test": {
+			"new()": {
+				"Syntax": "**.new**()",
+				"Params": [],
+				"Summary": ""
+			}
+		},
+		"MCP_DataAccess": {
+			"new()": {
+				"Syntax": "**.new**()",
+				"Params": [],
+				"Summary": ""
+			}
+		},
+		"MCP_Handler": {
+			"new()": {
+				"Syntax": "**.new**()",
+				"Params": [],
+				"Summary": ""
+			}
+		},
+		"MCP_Auth": {
+			"new()": {
+				"Syntax": "**.new**()",
+				"Params": [],
+				"Summary": ""
+			}
+		},
+		"MCP_Schema": {
+			"new()": {
+				"Syntax": "**.new**()",
+				"Params": [],
+				"Summary": ""
+			}
+		}
+	},
+	"MCP_Test": {
+		"runAll()": {
+			"Syntax": "**.runAll**() : Object",
+			"Params": [
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"seedFixtures()": {
+			"Syntax": "**.seedFixtures**()",
+			"Params": [],
+			"Summary": ""
+		}
+	},
+	"MCP_DataAccess": {
+		"call_method()": {
+			"Syntax": "**.call_method**( *params* : Object ) : Object",
+			"Params": [
+				[
+					"params",
+					"Object",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"update_entity()": {
+			"Syntax": "**.update_entity**( *params* : Object ) : Object",
+			"Params": [
+				[
+					"params",
+					"Object",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"get_entity()": {
+			"Syntax": "**.get_entity**( *params* : Object ) : Object",
+			"Params": [
+				[
+					"params",
+					"Object",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"delete_entity()": {
+			"Syntax": "**.delete_entity**( *params* : Object ) : Object",
+			"Params": [
+				[
+					"params",
+					"Object",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"create_entity()": {
+			"Syntax": "**.create_entity**( *params* : Object ) : Object",
+			"Params": [
+				[
+					"params",
+					"Object",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"query_entities()": {
+			"Syntax": "**.query_entities**( *params* : Object ) : Object",
+			"Params": [
+				[
+					"params",
+					"Object",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		}
+	},
+	"MCP_Handler": {
+		"dispatch()": {
+			"Syntax": "**.dispatch**( *request* : 4D.IncomingMessage ) : 4D.OutgoingMessage",
+			"Params": [
+				[
+					"request",
+					"4D.IncomingMessage",
+					"->"
+				],
+				[
+					"",
+					"4D.OutgoingMessage",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"getConfig()": {
+			"Syntax": "**.getConfig**() : Object",
+			"Params": [
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"handle()": {
+			"Syntax": "**.handle**( *token* : Text; *body* : Object ) : Object",
+			"Params": [
+				[
+					"token",
+					"Text",
+					"->"
+				],
+				[
+					"body",
+					"Object",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		}
+	},
+	"MCP_Auth": {
+		"validate()": {
+			"Syntax": "**.validate**( *token* : Text ) : Object",
+			"Params": [
+				[
+					"token",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		}
+	},
+	"MCP_Schema": {
+		"digest()": {
+			"Syntax": "**.digest**( *cap* : Object ) : Object",
+			"Params": [
+				[
+					"cap",
+					"Object",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		}
+	}
+}
