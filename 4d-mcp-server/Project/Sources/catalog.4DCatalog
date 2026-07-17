@@ -7,7 +7,13 @@
 		<field name="name" uuid="5D6A109C207A4553BE88D908736FDDAF" type="10" limiting_length="80" never_null="true" id="2"/>
 		<field name="email" uuid="501CEDB97DE043E8B9D79AC4B4E5AA5D" type="10" limiting_length="255" id="3"/>
 		<field name="active" uuid="9E788EECFB3C4C66A7FDC720F3E2697F" type="1" id="4"/>
+		<field name="internalNote" uuid="A1B2C3D4E5F647889900112233445566" type="10" limiting_length="255" hide_in_REST="true" id="5"/>
 		<primary_key field_name="ID" field_uuid="4284FF43BD5B4FF88A54A2E7B5926A6E"/>
+	</table>
+	<table name="Secret" uuid="B7C8D9E0F1A2434455667788990011AA" hide_in_REST="true" id="3">
+		<field name="ID" uuid="C3D4E5F6A7B84899AABBCCDDEEFF0011" type="4" unique="true" autosequence="true" never_null="true" id="1"/>
+		<field name="payload" uuid="D9E0F1A2B3C445556677889900AABB22" type="10" limiting_length="255" id="2"/>
+		<primary_key field_name="ID" field_uuid="C3D4E5F6A7B84899AABBCCDDEEFF0011"/>
 	</table>
 	<table name="Order" uuid="07BCABEFE7A446EA886A27DA3C1AE76B" id="2">
 		<field name="ID" uuid="40FC805161684FBC9F7EA3991AE7C45F" type="4" unique="true" autosequence="true" never_null="true" id="1"/>

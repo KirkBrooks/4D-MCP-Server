@@ -306,10 +306,36 @@ Function call_method($params : Object) : Object
 // --- Helpers ----------------------------------------------------------------
 
 Function _projection($dcName : Text; $attributes : Variant) : Text
+	// With RESPECT_4D_SCHEMA on, unexposed storage fields (attribute lacks
+	// `exposed`) never appear in results — neither in the default projection
+	// nor via an explicit attributes request naming them.
+	var $respect : Boolean
+	var $config : Object
+	$config:=cs.MCP_Handler.me.getConfig()
+	$respect:=($config#Null) && Bool($config.RESPECT_4D_SCHEMA)
+
 	if ($attributes#Null)
 		if (Value type($attributes)=Is collection)
 			if ($attributes.length>0)
-				return $attributes.join(",")
+				if (Not($respect))
+					return $attributes.join(",")
+				end if
+				var $kept : Collection
+				$kept:=New collection
+				var $req : Variant
+				For each ($req; $attributes)
+					var $reqAttr : Object
+					$reqAttr:=ds[$dcName][String($req)]
+					if ($reqAttr#Null) && ($reqAttr.kind="storage") && (Not(Bool($reqAttr.exposed)))
+						continue  // silently dropped, mirroring how unknown names behave
+					end if
+					$kept.push(String($req))
+				End for each
+				if ($kept.length>0)
+					return $kept.join(",")
+				end if
+				// every requested field was unexposed — fall through to the
+				// default (exposure-filtered) projection rather than "all".
 			end if
 		end if
 	end if
@@ -324,6 +350,9 @@ Function _projection($dcName : Text; $attributes : Variant) : Text
 		$a:=ds[$dcName][$key]
 		if ($a#Null)
 			if ($a.kind="storage")
+				if ($respect) && (Not(Bool($a.exposed)))
+					continue
+				end if
 				$names.push($a.name)
 			end if
 		end if

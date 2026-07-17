@@ -68,9 +68,24 @@ The Bearer token resolves 4D-side to a **capability object**:
 }
 ```
 
-- `read` / `write` — arrays of **dataclass names** the token may read / mutate.
+- `read` / `write` — arrays of **dataclass names** the token may read / mutate,
+  or the wildcard string `"*"` meaning *every dataclass the server config
+  exposes*. Only the exact one-character string `"*"` is a wildcard; any other
+  string value normalizes to no access.
 - `call` — array of **whitelisted action names** (not 4D method names) the token may invoke via `call_method`.
 - Empty array = no access to that verb. Absent key treated as empty array.
+
+**Table exposure (server config, bounds every token including `"*"`):** the
+deployment config decides which dataclasses exist as far as clients are
+concerned. `WHITELIST_TABLES` non-empty → exactly those; otherwise all
+dataclasses, minus those hidden from REST in the catalog when
+`RESPECT_4D_SCHEMA` is true, minus `BLACKLIST_TABLES`. An entity action on an
+unexposed dataclass is `CAP_DENIED` (403) at the config gate (5a), before the
+token capability is consulted. With `RESPECT_4D_SCHEMA` on, field-level REST
+exposure is honored as well: unexposed fields are omitted from the digest and
+from all query/get projections (explicit `attributes` naming them are silently
+dropped), and create/update values naming one are `CAP_DENIED`. Relations
+whose target dataclass is unexposed are omitted from the digest.
 
 **Gate order in the dispatcher, every request:**
 
@@ -101,9 +116,12 @@ The Bearer token resolves 4D-side to a **capability object**:
 
 ### 3.1 `get_schema_digest`
 
-Return the schema digest for dataclasses the token can `read`. Reuses the YAML/JSON digest shape from the `4d-catalog` workflow.
+Return the schema digest for the dataclasses the server config exposes,
+narrowed to the token's `read` grant (`"*"` = all exposed). Reuses the
+YAML/JSON digest shape from the `4d-catalog` workflow.
 
-**Capability:** none beyond a valid token; result is filtered to `read` dataclasses.
+**Capability:** none beyond a valid token; result is the exposed set ∩ the
+`read` grant.
 
 **Request**
 ```json

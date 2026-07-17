@@ -576,12 +576,12 @@ Function _checkCapability($action : Text; $params : Object; $cap : Object) : Tex
 		: ($action="get_schema_digest")
 			return ""
 		: ($action="query_entities") | ($action="get_entity")
-			if ($cap.read.indexOf(String($params.dataclass))<0)
+			if (Not(cs.MCP_Auth.me.grantCovers($cap.read; String($params.dataclass))))
 				return "Token cannot read dataclass: "+String($params.dataclass)
 			end if
 			return ""
 		: ($action="create_entity") | ($action="update_entity") | ($action="delete_entity")
-			if ($cap.write.indexOf(String($params.dataclass))<0)
+			if (Not(cs.MCP_Auth.me.grantCovers($cap.write; String($params.dataclass))))
 				return "Token cannot write dataclass: "+String($params.dataclass)
 			end if
 			return ""
@@ -602,23 +602,38 @@ Function _checkCapability($action : Text; $params : Object; $cap : Object) : Tex
 // ALLOW_DELETE gates delete_entity.
 // ALLOW_CALL_METHOD gates call_method globally; METHOD_WHITELIST is the
 // filtered subset of action names callable when it is true.
+// Table exposure (RESPECT_4D_SCHEMA / WHITELIST_TABLES / BLACKLIST_TABLES)
+// is a config concern, so it is enforced here too: an entity action on an
+// unexposed dataclass is CAP_DENIED regardless of the token. When
+// RESPECT_4D_SCHEMA is on, create/update values may not touch unexposed
+// fields. get_schema_digest self-filters in MCP_Schema.digest.
 Function _checkConfigGate($action : Text; $params : Object; $config : Object) : Text
 	Case of
-		: ($action="get_schema_digest") | ($action="query_entities") | ($action="get_entity")
+		: ($action="get_schema_digest")
 			if (Not(Bool($config.ALLOW_READ)))
 				return "Read access is disabled in server config"
 			end if
 			return ""
+		: ($action="query_entities") | ($action="get_entity")
+			if (Not(Bool($config.ALLOW_READ)))
+				return "Read access is disabled in server config"
+			end if
+			return This._checkExposure($params; $config)
 		: ($action="create_entity") | ($action="update_entity")
 			if (Not(Bool($config.ALLOW_WRITE)))
 				return "Write access is disabled in server config"
 			end if
-			return ""
+			var $ce : Text
+			$ce:=This._checkExposure($params; $config)
+			if (Length($ce)>0)
+				return $ce
+			end if
+			return This._checkValuesExposure($params; $config)
 		: ($action="delete_entity")
 			if (Not(Bool($config.ALLOW_DELETE)))
 				return "Delete access is disabled in server config"
 			end if
-			return ""
+			return This._checkExposure($params; $config)
 		: ($action="call_method")
 			if (Not(Bool($config.ALLOW_CALL_METHOD)))
 				return "Method calls are disabled in server config"
@@ -631,6 +646,41 @@ Function _checkConfigGate($action : Text; $params : Object; $config : Object) : 
 			end if
 			return ""
 	End case
+	return ""
+
+// _checkExposure: the target dataclass must be in the config's exposed set.
+Function _checkExposure($params : Object; $config : Object) : Text
+	if (Not(cs.MCP_Schema.me.isExposed($config; String($params.dataclass))))
+		return "Dataclass is not exposed: "+String($params.dataclass)
+	end if
+	return ""
+
+// _checkValuesExposure: with RESPECT_4D_SCHEMA on, refuse create/update whose
+// values name an unexposed storage field (its attribute lacks `exposed`).
+// Unknown keys still pass through — fromObject ignores them, as before.
+Function _checkValuesExposure($params : Object; $config : Object) : Text
+	if (Not(Bool($config.RESPECT_4D_SCHEMA)))
+		return ""
+	end if
+	if (Value type($params.values)#Is object)
+		return ""  // missing/malformed values is gate 4's problem, not ours
+	end if
+	var $dcName : Text
+	$dcName:=String($params.dataclass)
+	var $key : Text
+	For each ($key; $params.values)
+		var $attr : Object
+		$attr:=ds[$dcName][$key]
+		if ($attr=Null)
+			continue
+		end if
+		if ($attr.kind#"storage")
+			continue
+		end if
+		if (Not(Bool($attr.exposed)))
+			return "Field is not exposed: "+$dcName+"."+$key
+		end if
+	End for each
 	return ""
 
 // --- Result descriptors -----------------------------------------------------

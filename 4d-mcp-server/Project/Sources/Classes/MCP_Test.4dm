@@ -206,6 +206,78 @@ Function runAll() : Object
 	$res:=This._call($FULL; "query_entities"; New object("dataclass"; "Customer"))
 	This._ok($r; "config_restored_200"; ($res.status=200) && ($res.env.ok=True))
 
+	// 23b. table/field exposure + wildcard grants. Fixtures: table Secret and
+	// field Customer.internalNote are hide_in_REST in the catalog. The pristine
+	// config has RESPECT_4D_SCHEMA=true and empty white/blacklists.
+	var $STAR : Text
+	$STAR:="SECRET_STAR"
+	var $custDigest : Object
+
+	// wildcard digest = exposed set only: Customer + Order, never Secret;
+	// Customer's unexposed field is omitted (ID, name, email, active = 4).
+	$res:=This._call($STAR; "get_schema_digest"; New object)
+	This._ok($r; "star_digest_exposed_only"; ($res.env.data.dataclasses.length=2))
+	$custDigest:=$res.env.data.dataclasses.query("name = :1"; "Customer")[0]
+	This._ok($r; "star_digest_unexposed_field_hidden"; ($custDigest#Null) && ($custDigest.fields.length=4))
+
+	// unexposed table is CAP_DENIED even for a wildcard token
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Secret"))
+	This._ok($r; "unexposed_table_capdenied"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	// unexposed field cannot be written through the API
+	$res:=This._call($STAR; "update_entity"; New object("dataclass"; "Customer"; \
+		"key"; $acmeID; "values"; New object("internalNote"; "x")))
+	This._ok($r; "unexposed_field_write_capdenied"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	// unexposed field never appears in results — seeded directly via ORDA,
+	// absent from both the default projection and an explicit request.
+	var $eAcme : 4D.Entity
+	$eAcme:=ds.Customer.query("name = :1"; "Acme Co").first()
+	$eAcme.internalNote:="hush"
+	$eAcme.save()
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"; \
+		"filter"; "name = :1"; "params"; New collection("Acme Co")))
+	This._ok($r; "unexposed_field_absent_default"; ($res.env.data[0].internalNote=Null) && ($res.env.data[0].name="Acme Co"))
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"; \
+		"attributes"; New collection("name"; "internalNote")))
+	This._ok($r; "unexposed_field_dropped_explicit"; ($res.env.data[0].internalNote=Null) && ($res.env.data[0].name#Null))
+
+	// wildcard write works on an exposed table (create + delete round trip)
+	$res:=This._call($STAR; "create_entity"; New object("dataclass"; "Order"; \
+		"values"; New object("customerID"; $acmeID; "total"; 7; "status"; "star")))
+	This._ok($r; "star_create_200"; ($res.status=200) && ($res.env.data.created=True))
+	$res:=This._call($STAR; "delete_entity"; New object("dataclass"; "Order"; "key"; $res.env.data.key))
+	This._ok($r; "star_delete_200"; ($res.status=200) && ($res.env.data.deleted=True))
+
+	// RESPECT_4D_SCHEMA=false exposes everything: Secret appears, field visible
+	This._patchConfig($cfgFile; $cfgOrig; "RESPECT_4D_SCHEMA"; False)
+	$res:=This._call($STAR; "get_schema_digest"; New object)
+	This._ok($r; "respect_off_star_sees_all"; ($res.env.data.dataclasses.length=3))
+	$custDigest:=$res.env.data.dataclasses.query("name = :1"; "Customer")[0]
+	This._ok($r; "respect_off_field_visible"; ($custDigest#Null) && ($custDigest.fields.length=5))
+
+	// BLACKLIST_TABLES hides a table from digest, queries, and relations
+	This._patchConfig($cfgFile; $cfgOrig; "BLACKLIST_TABLES"; New collection("Order"))
+	$res:=This._call($STAR; "get_schema_digest"; New object)
+	This._ok($r; "blacklist_digest_customer_only"; ($res.env.data.dataclasses.length=1) && ($res.env.data.dataclasses[0].name="Customer"))
+	This._ok($r; "blacklist_relation_hidden"; ($res.env.data.dataclasses[0].relations.length=0))
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Order"))
+	This._ok($r; "blacklist_query_capdenied"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	// WHITELIST_TABLES overrides blacklist AND respect: Secret exposed by
+	// whitelist despite hide_in_REST; Order denied even for a token listing it.
+	This._patchConfig($cfgFile; $cfgOrig; "WHITELIST_TABLES"; New collection("Customer"; "Secret"))
+	$res:=This._call($STAR; "get_schema_digest"; New object)
+	This._ok($r; "whitelist_digest_2"; ($res.env.data.dataclasses.length=2))
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Secret"))
+	This._ok($r; "whitelist_overrides_respect"; ($res.status=200) && ($res.env.ok=True))
+	$res:=This._call($FULL; "query_entities"; New object("dataclass"; "Order"))
+	This._ok($r; "whitelist_bounds_list_token"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	$cfgFile.setText($cfgOrig)
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"))
+	This._ok($r; "exposure_config_restored_200"; ($res.status=200) && ($res.env.ok=True))
+
 	// 24. transport gates + rate limit — pure helpers, testable headless.
 	// dispatch() itself needs a real web server; the curl suite covers it.
 	var $tcfg : Object
