@@ -45,6 +45,13 @@ Function _loadTokens() : Object
 		"read"; New collection("Customer"); \
 		"write"; New collection; \
 		"call"; New collection)
+	// HPC4d trial: read-only on core business tables. Deliberately excludes
+	// payroll, passwords, W2 and other sensitive dataclasses.
+	$t["SECRET_HPC_RO"]:=New object(\
+		"token_id"; "tok_hpc_ro"; \
+		"read"; New collection("customers"; "workOrder"; "lineItem"; "header"); \
+		"write"; New collection; \
+		"call"; New collection)
 	return $t
 
 Function _normalize($cap : Object) : Object
