@@ -40,8 +40,14 @@ If ($webServer.isRunning)
 	return New object("success"; True; "port"; $port; "message"; "MCP web server already running")
 End if 
 
+// HTTPHandlers.json is only loaded by the MAIN web server of the project that
+// owns it — a component's own WebServer object never reads it. Register the
+// /mcp handler programmatically so it works embedded as a compiled component.
+var $handlers : Collection
+$handlers:=New collection(New object("class"; "MCP_Handler"; "method"; "dispatch"; "verbs"; "post"; "regexPattern"; "/mcp"))
+
 var $status : Object
-$status:=$webServer.start(New object("HTTPPort"; $port))
+$status:=$webServer.start(New object("HTTPPort"; $port; "handlers"; $handlers))
 
 If (Bool($status.success))
 	log_worker("MCP server listening on http://localhost:"+String($port)+"/mcp"+Char(Line feed))
