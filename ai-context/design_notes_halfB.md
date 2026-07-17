@@ -1,8 +1,8 @@
 # Half B — design notes (non-obvious 4D-side choices)
 
 Decisions and 4D-version quirks discovered while building and verifying Half B
-against `tool4d` (4D 20 R10 engine). All were validated by the 30-assertion
-headless suite (`MCP_RunHeadlessTests`).
+against `tool4d` (4D 20 R10 engine). All were validated by the headless suite
+(`MCP_RunHeadlessTests`) — 83 assertions as of the table/field-exposure work.
 
 ## Architecture
 
@@ -168,6 +168,46 @@ total, truncated, clamped}`; `truncated = (offset+count) < total`.
   fail the version check — it fails a more fundamental one. §2 gate 2 now
   states this explicitly. No code change was needed; `handle()` already
   implemented this ordering.
+## Table & field exposure (gate 5a) — added 2026-07-17
+
+Config-driven exposure (`RESPECT_4D_SCHEMA` / `WHITELIST_TABLES` /
+`BLACKLIST_TABLES`) plus `"*"` wildcard token grants. Non-obvious points, most
+surfaced by the adversarial review of the first cut (commit `eadf28f`):
+
+- **Exposure is a config gate (5a), before the token capability (5b).** Config
+  bounds every token, wildcard included; `MCP_Schema.exposedDataclasses()` is
+  the single source of the exposed set. `isExposed()` reuses it.
+- **Scalar-only projection is a security boundary, not a convenience.**
+  `MCP_DataAccess._projectionNames()` drops relation attributes, dotted paths
+  and unknown names *always* (even with `RESPECT_4D_SCHEMA` off) — otherwise
+  `attributes:["orders"]` makes `toObject` dump related entities, bypassing
+  every exposure rule (contract §6). An empty projection yields `{}` via
+  `_entityObject`, never `toObject("")` (which ORDA reads as "all attributes"
+  — a fail-open dump of exactly the hidden fields).
+- **`filter` / `orderBy` are enforced too.** The projection hides a field from
+  output, but the query *engine* still reads it, so `filter:"internalNote=:1"`
+  is a value oracle via `meta.total`. `MCP_Schema.forbiddenQueryField()`
+  tokenizes the query string (quoted literals stripped so a quoted value isn't
+  mistaken for a field), rejects unexposed-field and relation/dotted
+  references under `RESPECT_4D_SCHEMA`.
+- **Config table-name matching is case-insensitive.** `collection.indexOf` is
+  case-sensitive but `ds[name]` resolution is not, so a `BLACKLIST_TABLES`
+  entry of the wrong case would fail *open* on a deny list. `exposedDataclasses`
+  canonicalizes via a lowercase→realname map of `OB Keys(ds)`.
+- **Malformed config fails closed.** `_nameList` coerces a bare-string
+  white/blacklist to a one-element list (charitable, still not fail-open); any
+  other wrong type (object/number) → the whitelist/blacklist is treated as
+  malformed and exposes nothing.
+- **`hide_in_REST` is the catalog attribute** (per 4D's `base_core.dtd`), on
+  both `<table>` and `<field>`; it surfaces at runtime as `getInfo().exposed` /
+  `attribute.exposed` being `false`. Do **not** put it on a primary-key field —
+  it drops the field's index and breaks saves. Fixtures: table `Secret` and
+  field `Customer.internalNote`.
+- **Denial messages are uniform.** 5a and 5b both return `CAP_DENIED` with the
+  message `"Access denied"` so a valid token can't distinguish a hidden table
+  from an ungranted one and enumerate the schema.
+
 - No other contract deviations. Envelopes, gate order, and the error taxonomy
-  (code+message only — no `details`/`retryable`) are implemented exactly as
-  written.
+  (code+message only — no `details`/`retryable`) are implemented as written,
+  with gate 5 now resolved into the 5a config-exposure / 5b token-capability
+  sub-gates described above.

@@ -17,7 +17,14 @@
 //   2. v == 1                   -> BAD_VERSION    (400)
 //   3. action known            -> UNKNOWN_ACTION (400)
 //   4. params well-formed      -> BAD_PARAMS     (400)
-//   5. capability for action   -> CAP_DENIED     (403)
+//   5a. config verb+exposure gate (_checkConfigGate): ALLOW_* verb gates, plus
+//       table/field exposure — an entity action on an unexposed dataclass, a
+//       filter/orderBy naming an unexposed field, or create/update values
+//       naming one -> CAP_DENIED (403). Runs before the token capability so
+//       config bounds every token, wildcard included.
+//   5b. token capability for action (_checkCapability) -> CAP_DENIED (403).
+//       Denial messages at 5a/5b are identical ("Access denied") so a token
+//       cannot distinguish "hidden" from "ungranted" and map the schema.
 //   6. execute                 -> success | NOT_FOUND | QUERY_ERROR | INTERNAL
 //
 // Envelopes (1): success {v,ok:true,data,meta?}; error {v,ok:false,error:{code,message}}.
@@ -577,12 +584,12 @@ Function _checkCapability($action : Text; $params : Object; $cap : Object) : Tex
 			return ""
 		: ($action="query_entities") | ($action="get_entity")
 			if (Not(cs.MCP_Auth.me.grantCovers($cap.read; String($params.dataclass))))
-				return "Token cannot read dataclass: "+String($params.dataclass)
+				return "Access denied"  // generic — see _checkExposure
 			end if
 			return ""
 		: ($action="create_entity") | ($action="update_entity") | ($action="delete_entity")
 			if (Not(cs.MCP_Auth.me.grantCovers($cap.write; String($params.dataclass))))
-				return "Token cannot write dataclass: "+String($params.dataclass)
+				return "Access denied"  // generic — see _checkExposure
 			end if
 			return ""
 		: ($action="call_method")
@@ -618,7 +625,20 @@ Function _checkConfigGate($action : Text; $params : Object; $config : Object) : 
 			if (Not(Bool($config.ALLOW_READ)))
 				return "Read access is disabled in server config"
 			end if
-			return This._checkExposure($params; $config)
+			var $re : Text
+			$re:=This._checkExposure($params; $config)
+			if (Length($re)>0)
+				return $re
+			end if
+			// filter / orderBy may not reference unexposed or relation fields
+			// (value-oracle guard). get_entity carries neither, so this is a
+			// no-op there but harmless.
+			var $bad : Text
+			$bad:=cs.MCP_Schema.me.forbiddenQueryField(String($params.dataclass); $params.filter; $params.orderBy; $config)
+			if (Length($bad)>0)
+				return "Access denied"
+			end if
+			return ""
 		: ($action="create_entity") | ($action="update_entity")
 			if (Not(Bool($config.ALLOW_WRITE)))
 				return "Write access is disabled in server config"
@@ -649,9 +669,12 @@ Function _checkConfigGate($action : Text; $params : Object; $config : Object) : 
 	return ""
 
 // _checkExposure: the target dataclass must be in the config's exposed set.
+// The denial message is deliberately generic and identical to the token-
+// capability denial (see _checkCapability): otherwise a valid token could tell
+// "exists but hidden" from "exists and ungranted" and enumerate the schema.
 Function _checkExposure($params : Object; $config : Object) : Text
 	if (Not(cs.MCP_Schema.me.isExposed($config; String($params.dataclass))))
-		return "Dataclass is not exposed: "+String($params.dataclass)
+		return "Access denied"
 	end if
 	return ""
 

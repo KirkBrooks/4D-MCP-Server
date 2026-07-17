@@ -168,7 +168,7 @@ tool4d --project Project/4d-mcp-server.4DProject --opening-mode interpreted \
 cat test_report.json     # { total, passed, failed, cases:[...] }
 ```
 
-70 assertions cover all 8 action invocations, the full error taxonomy, capability
+83 assertions cover all 8 action invocations, the full error taxonomy, capability
 gating, the deployment-config verb gates (ENABLED, ALLOW_READ/WRITE/DELETE,
 ALLOW_CALL_METHOD + METHOD_WHITELIST), the transport gates (REQUIRE_HTTPS,
 MAX_BODY_SIZE, per-token rate limit), placeholder binding, pagination clamp,

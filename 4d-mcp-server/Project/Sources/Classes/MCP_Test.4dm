@@ -278,6 +278,83 @@ Function runAll() : Object
 	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"))
 	This._ok($r; "exposure_config_restored_200"; ($res.status=200) && ($res.env.ok=True))
 
+	// 23c. adversarial-review regressions (commit eadf28f review).
+	// (a) relation-name projection must NOT dump related entities (§6 scalar-
+	//     only) — attributes:["orders"] yields {} for that row, no leak.
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"; \
+		"filter"; "name = :1"; "params"; New collection("Acme Co"); \
+		"attributes"; New collection("orders")))
+	This._ok($r; "proj_relation_name_stripped"; ($res.status=200) && ($res.env.data[0].orders=Null) && ($res.env.data[0].ID=Null))
+
+	// (b) dotted relation path stripped too
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"; \
+		"filter"; "name = :1"; "params"; New collection("Acme Co"); \
+		"attributes"; New collection("orders.total")))
+	This._ok($r; "proj_dotted_path_stripped"; ($res.status=200) && ($res.env.data[0].total=Null) && ($res.env.data[0].orders=Null))
+
+	// (c) filter referencing an unexposed field is refused (value-oracle guard)
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"; \
+		"filter"; "internalNote = :1"; "params"; New collection("hush")))
+	This._ok($r; "filter_unexposed_field_capdenied"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	// (d) filter with a quoted literal that spells an unexposed field name is
+	//     fine — it's a value, not a field reference
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"; \
+		"filter"; "name = 'internalNote'"))
+	This._ok($r; "filter_quoted_literal_ok"; ($res.status=200) && ($res.env.ok=True))
+
+	// (e) orderBy on an unexposed field is refused
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"; \
+		"orderBy"; "internalNote asc"))
+	This._ok($r; "orderby_unexposed_field_capdenied"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	// (f) orderBy on an exposed field still works
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"; "orderBy"; "name asc"))
+	This._ok($r; "orderby_exposed_field_ok"; ($res.status=200) && ($res.env.ok=True))
+
+	// (g) empty projection must return {}, never toObject("")=all. Requesting
+	//     ONLY an unexposed field leaves the projection empty; the row must come
+	//     back with no fields, not a full dump of the (exposed) columns.
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"; \
+		"filter"; "name = :1"; "params"; New collection("Acme Co"); \
+		"attributes"; New collection("internalNote")))
+	This._ok($r; "empty_projection_no_dump"; ($res.status=200) && ($res.env.meta.total=1) && ($res.env.data[0].name=Null) && ($res.env.data[0].ID=Null) && ($res.env.data[0].internalNote=Null))
+
+	// (h) case-insensitive blacklist: lowercase config name still hides the
+	//     canonically-cased table (fail-open regression guard)
+	This._patchConfig($cfgFile; $cfgOrig; "BLACKLIST_TABLES"; New collection("order"))
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Order"))
+	This._ok($r; "blacklist_case_insensitive"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	// (i) WHITELIST_TABLES as a bare string is coerced to a one-table list —
+	//     must NOT fail open to "all". Customer exposed, Order denied.
+	This._patchConfig($cfgFile; $cfgOrig; "WHITELIST_TABLES"; "Customer")
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"))
+	This._ok($r; "whitelist_string_coerced_customer"; ($res.status=200) && ($res.env.ok=True))
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Order"))
+	This._ok($r; "whitelist_string_not_failopen"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	// (i2) genuinely malformed WHITELIST_TABLES (an object) fails CLOSED
+	This._patchConfig($cfgFile; $cfgOrig; "WHITELIST_TABLES"; New object("bogus"; True))
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"))
+	This._ok($r; "whitelist_object_failclosed"; ($res.status=403) && ($res.env.error.code="CAP_DENIED"))
+
+	// (j) exposure denial and capability denial are indistinguishable (no
+	//     table-existence oracle): both are CAP_DENIED with the same message.
+	var $hidden : Object
+	var $ungranted : Object
+	This._patchConfig($cfgFile; $cfgOrig; "BLACKLIST_TABLES"; New collection("Order"))
+	$hidden:=This._call($STAR; "query_entities"; New object("dataclass"; "Order"))
+	$cfgFile.setText($cfgOrig)
+	$ungranted:=This._call($RO; "query_entities"; New object("dataclass"; "Order"))
+	This._ok($r; "denial_messages_indistinguishable"; \
+		($hidden.env.error.code="CAP_DENIED") && ($ungranted.env.error.code="CAP_DENIED") && \
+		($hidden.env.error.message=$ungranted.env.error.message))
+
+	$cfgFile.setText($cfgOrig)
+	$res:=This._call($STAR; "query_entities"; New object("dataclass"; "Customer"))
+	This._ok($r; "regression_config_restored_200"; ($res.status=200) && ($res.env.ok=True))
+
 	// 24. transport gates + rate limit — pure helpers, testable headless.
 	// dispatch() itself needs a real web server; the curl suite covers it.
 	var $tcfg : Object

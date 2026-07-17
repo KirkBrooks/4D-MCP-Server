@@ -75,8 +75,8 @@ Function query_entities($params : Object) : Object
 	var $total : Integer
 	$total:=$sel.length
 
-	var $proj : Text
-	$proj:=This._projection(String($params.dataclass); $params.attributes)
+	var $projNames : Collection
+	$projNames:=This._projectionNames(String($params.dataclass); $params.attributes)
 
 	var $data : Collection
 	$data:=New collection
@@ -85,7 +85,7 @@ Function query_entities($params : Object) : Object
 		$page:=$sel.slice($offset; $offset+$limit)
 		var $e : 4D.Entity
 		For each ($e; $page)
-			$data.push($e.toObject($proj))
+			$data.push(This._entityObject($e; $projNames))
 		End for each
 	Catch
 		return This._err("QUERY_ERROR"; This._lastErrorText())
@@ -158,9 +158,9 @@ Function get_entity($params : Object) : Object
 	if ($e=Null)
 		return This._err("NOT_FOUND"; "No entity with key "+JSON Stringify($params.key))
 	end if
-	var $proj : Text
-	$proj:=This._projection(String($params.dataclass); $params.attributes)
-	return New object("data"; $e.toObject($proj))
+	var $projNames : Collection
+	$projNames:=This._projectionNames(String($params.dataclass); $params.attributes)
+	return New object("data"; This._entityObject($e; $projNames))
 
 // =============================================================================
 //  create_entity  (3.4)
@@ -305,41 +305,43 @@ Function call_method($params : Object) : Object
 
 // --- Helpers ----------------------------------------------------------------
 
-Function _projection($dcName : Text; $attributes : Variant) : Text
-	// With RESPECT_4D_SCHEMA on, unexposed storage fields (attribute lacks
-	// `exposed`) never appear in results — neither in the default projection
-	// nor via an explicit attributes request naming them.
+// _projectionNames: the storage-attribute names to return for one row.
+// SCALAR-ONLY, always: relation attributes and dotted paths are never
+// projected (wire contract §6), whether or not RESPECT_4D_SCHEMA is on — this
+// is what stops attributes:["orders"] from dumping related entities. When
+// RESPECT_4D_SCHEMA is on, unexposed storage fields are additionally excluded.
+// An explicit `attributes` list is intersected with this rule (unknown names,
+// relations and unexposed fields silently dropped); an empty result means the
+// row has no returnable fields — the caller emits {} (never "all").
+Function _projectionNames($dcName : Text; $attributes : Variant) : Collection
 	var $respect : Boolean
 	var $config : Object
 	$config:=cs.MCP_Handler.me.getConfig()
 	$respect:=($config#Null) && Bool($config.RESPECT_4D_SCHEMA)
 
-	if ($attributes#Null)
-		if (Value type($attributes)=Is collection)
-			if ($attributes.length>0)
-				if (Not($respect))
-					return $attributes.join(",")
+	if (Value type($attributes)=Is collection)
+		if ($attributes.length>0)
+			var $kept : Collection
+			$kept:=New collection
+			var $req : Variant
+			For each ($req; $attributes)
+				var $reqAttr : Object
+				$reqAttr:=ds[$dcName][String($req)]
+				if ($reqAttr=Null)
+					continue  // unknown name or dotted path
 				end if
-				var $kept : Collection
-				$kept:=New collection
-				var $req : Variant
-				For each ($req; $attributes)
-					var $reqAttr : Object
-					$reqAttr:=ds[$dcName][String($req)]
-					if ($reqAttr#Null) && ($reqAttr.kind="storage") && (Not(Bool($reqAttr.exposed)))
-						continue  // silently dropped, mirroring how unknown names behave
-					end if
-					$kept.push(String($req))
-				End for each
-				if ($kept.length>0)
-					return $kept.join(",")
+				if ($reqAttr.kind#"storage")
+					continue  // relation attribute — scalar-only
 				end if
-				// every requested field was unexposed — fall through to the
-				// default (exposure-filtered) projection rather than "all".
-			end if
+				if ($respect) && (Not(Bool($reqAttr.exposed)))
+					continue  // unexposed field
+				end if
+				$kept.push($reqAttr.name)
+			End for each
+			return $kept
 		end if
 	end if
-	// default: all scalar (storage) attributes, no relations.
+	// default: all scalar (storage) attributes, exposure-filtered when respect.
 	// Attribute objects via datastore double-bracket ds[$name][$key]; direct
 	// bracket on a DataClass throws in this 4D build.
 	var $names : Collection
@@ -357,7 +359,16 @@ Function _projection($dcName : Text; $attributes : Variant) : Text
 			end if
 		end if
 	End for each
-	return $names.join(",")
+	return $names
+
+// _entityObject: project an entity to the given storage-attribute names.
+// An empty name list yields {} — NEVER toObject(""), which ORDA treats as
+// "all attributes" and would leak the very fields the projection excluded.
+Function _entityObject($e : 4D.Entity; $names : Collection) : Object
+	if ($names=Null) || ($names.length=0)
+		return New object
+	end if
+	return $e.toObject($names.join(","))
 
 Function _err($code : Text; $message : Text) : Object
 	return New object("error"; New object("code"; $code; "message"; $message))

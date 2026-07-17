@@ -6,6 +6,23 @@ stack works end-to-end.
 
 ## Component (Half B)
 
+- [ ] **Config read / exposure-set recompute cost per request** (adversarial
+  review of `eadf28f`, MEDIUM). `getConfig()` re-reads and re-parses the config
+  file on every call, and it's called several times per request (dispatch,
+  handle, `_projectionNames`, `forbiddenQueryField`, `isExposed`);
+  `exposedDataclasses()` iterates `OB Keys(ds)` + `getInfo()` per dataclass each
+  time. Stateless singletons rule out instance caching — thread the already-
+  loaded `$config` (and a computed exposed-set) through `handle()` into the
+  gates and projection instead of re-reading. Also closes a within-request
+  live-config race (gates could see different snapshots if the file is edited
+  mid-request). Correctness is fine today; this is throughput on large schemas.
+
+- [ ] **`forbiddenQueryField` is a heuristic tokenizer, not a parser.** It
+  strips quoted literals and rejects identifiers that resolve to unexposed /
+  relation fields. It's conservative (rejects rather than leaks) but a
+  determined filter-syntax edge case could get a false reject. If filters get
+  richer, consider a real ORDA-filter parse or an allowlist of operators.
+
 - [ ] **Post-start bind probe in `MCP_Initialize_Host`.** After a host project
   reopen within the same 4D instance, `webServer.start()` reported success and
   the "listening" line was logged, but nothing was actually bound on the port
