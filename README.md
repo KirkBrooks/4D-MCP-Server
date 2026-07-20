@@ -49,15 +49,15 @@ Requires **4D 20 R8+** (HTTP request handlers).
 3. **Start it at host startup.** Call `MCP_Initialize_Host` from the host's `On Startup` / `On Server Startup` database method:
 
    ```4d
-ARRAY TEXT($names; 0)
-COMPONENT LIST($names)
-var $mcp : Object
-var $f : 4D.Function
+      ARRAY TEXT($names; 0)
+      COMPONENT LIST($names)
+      var $mcp : Object
+      var $f : 4D.Function
 
-If (Find in array($names; "4d-mcp-server")>0)
-	$f:=Formula from string("MCP_Initialize_Host")
-	$mcp:=$f.call()
-End if 
+      If (Find in array($names; "4d-mcp-server")>0)
+        $f:=Formula from string("MCP_Initialize_Host")
+        $mcp:=$f.call()
+      End if
    ```
 
    The `COMPONENT LIST` guard plus `Formula from string` indirection means the host compiles and runs cleanly even when the component is not installed (or later removed) — a direct call to `MCP_Initialize_Host` would fail to compile without it.
