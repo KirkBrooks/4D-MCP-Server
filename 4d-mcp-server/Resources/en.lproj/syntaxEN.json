@@ -127,6 +127,22 @@
 		}
 	},
 	"MCP_DataAccess": {
+		"get_entity()": {
+			"Syntax": "**.get_entity**( *params* : Object ) : Object",
+			"Params": [
+				[
+					"params",
+					"Object",
+					"->"
+				],
+				[
+					"",
+					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
 		"call_method()": {
 			"Syntax": "**.call_method**( *params* : Object ) : Object",
 			"Params": [
@@ -159,8 +175,8 @@
 			],
 			"Summary": ""
 		},
-		"get_entity()": {
-			"Syntax": "**.get_entity**( *params* : Object ) : Object",
+		"create_entity()": {
+			"Syntax": "**.create_entity**( *params* : Object ) : Object",
 			"Params": [
 				[
 					"params",
@@ -177,22 +193,6 @@
 		},
 		"delete_entity()": {
 			"Syntax": "**.delete_entity**( *params* : Object ) : Object",
-			"Params": [
-				[
-					"params",
-					"Object",
-					"->"
-				],
-				[
-					"",
-					"Object",
-					"<-"
-				]
-			],
-			"Summary": ""
-		},
-		"create_entity()": {
-			"Syntax": "**.create_entity**( *params* : Object ) : Object",
 			"Params": [
 				[
 					"params",
@@ -275,6 +275,27 @@
 		}
 	},
 	"MCP_Auth": {
+		"grantCovers()": {
+			"Syntax": "**.grantCovers**( *grant* : Variant; *name* : Text ) : Boolean",
+			"Params": [
+				[
+					"grant",
+					"Variant",
+					"->"
+				],
+				[
+					"name",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Boolean",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
 		"validate()": {
 			"Syntax": "**.validate**( *token* : Text ) : Object",
 			"Params": [
@@ -304,6 +325,74 @@
 				[
 					"",
 					"Object",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"isExposed()": {
+			"Syntax": "**.isExposed**( *config* : Object; *name* : Text ) : Boolean",
+			"Params": [
+				[
+					"config",
+					"Object",
+					"->"
+				],
+				[
+					"name",
+					"Text",
+					"->"
+				],
+				[
+					"",
+					"Boolean",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"exposedDataclasses()": {
+			"Syntax": "**.exposedDataclasses**( *config* : Object ) : Collection",
+			"Params": [
+				[
+					"config",
+					"Object",
+					"->"
+				],
+				[
+					"",
+					"Collection",
+					"<-"
+				]
+			],
+			"Summary": ""
+		},
+		"forbiddenQueryField()": {
+			"Syntax": "**.forbiddenQueryField**( *dcName* : Text; *filter* : Variant; *orderBy* : Variant; *config* : Object ) : Text",
+			"Params": [
+				[
+					"dcName",
+					"Text",
+					"->"
+				],
+				[
+					"filter",
+					"Variant",
+					"->"
+				],
+				[
+					"orderBy",
+					"Variant",
+					"->"
+				],
+				[
+					"config",
+					"Object",
+					"->"
+				],
+				[
+					"",
+					"Text",
 					"<-"
 				]
 			],
