@@ -74,10 +74,26 @@ In the host's `On Startup` (or `On Server Startup`) database method:
 
 ```4d
 // On Startup
+ARRAY TEXT($names; 0)
+COMPONENT LIST($names)
 var $mcp : Object
-$mcp:=MCP_Initialize_Host
+var $f : 4D.Function
 
+If (Find in array($names; "4d-mcp-server")>0)
+	$f:=Formula from string("MCP_Initialize_Host")
+	$mcp:=$f.call()
+End if 
+```
+
+The `COMPONENT LIST` guard plus `Formula from string` indirection lets the host
+compile and run even when the component is not installed or has been removed —
+a direct `MCP_Initialize_Host` call would fail to compile without it. Then
+handle the result:
+
+```4d
 Case of
+	: ($mcp=Null)
+		// Component not installed — nothing to do
 	: (Not(Bool($mcp.success)))
 		// Config unreadable/malformed, or the web server refused to start
 		// (port in use, ...). Already logged to stdout by the component;

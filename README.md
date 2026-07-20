@@ -60,6 +60,8 @@ If (Find in array($names; "4d-mcp-server")>0)
 End if 
    ```
 
+   The `COMPONENT LIST` guard plus `Formula from string` indirection means the host compiles and runs cleanly even when the component is not installed (or later removed) — a direct call to `MCP_Initialize_Host` would fail to compile without it.
+
    On first run this copies the default deployment config `4D-mcp-config.pref` into the host's `Project/Sources/`, then starts the component's own web server on the config's `HTTP_PORT` (default **8044**; set `0` to serve `/mcp` from the host's main web server instead). The call is idempotent and safe to re-run.
 
 4. **Configure tokens and exposure.** Edit `4D-mcp-config.pref` in the host's `Project/Sources/`:
