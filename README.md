@@ -64,11 +64,12 @@ Requires **4D 20 R8+** (HTTP request handlers).
 
    > On first run this copies the default deployment config `4D-mcp-config.pref` into the host's `Project/Sources/`, then starts the component's own web server on the config's `HTTP_PORT` (default **8044**; set `0` to serve `/mcp` from the host's main web server instead). The call is idempotent and safe to re-run.
 
-4. **Configure tokens and exposure.** Edit `4D-mcp-config.pref` in the host's `Project/Sources/`:
-   - Table exposure and verb gates (`ENABLED`, `ALLOW_READ/WRITE/DELETE`, `ALLOW_CALL_METHOD`).
-   - `METHOD_WHITELIST` — maps client-facing action names to host project methods for `4d_call_method`.
+4. **Configure tokens and exposure.** Settings live in `4D-mcp-config.pref` in the host's `Project/Sources/`. Two ways to edit it:
 
-   Tokens map a Bearer string to a capability object (readable/writable dataclasses, callable actions); v1 defines them in `MCP_Auth._loadTokens()`, swappable for a table-backed store. See the [Half B README](ai-context/README_halfB.md) for the exact shapes.
+   - **Settings window (recommended).** From a host client or single-user session, call `MCP_Open_Settings` (a menu item, a button, or the method runner). It opens a tabbed editor over the host's live config — Server, Access, Tables, Methods, Tokens, Logging, and a raw-JSON tab — validating as you go and preserving the file's comments and any keys it doesn't recognise. Because the loader re-reads the file on every request, a Save takes effect immediately, no restart (except `HTTP_PORT`, read only at startup).
+   - **By hand.** Edit the JSON directly — table exposure and verb gates (`ENABLED`, `ALLOW_READ/WRITE/DELETE`, `ALLOW_CALL_METHOD`), and `METHOD_WHITELIST`, which maps client-facing action names to host project methods for `4d_call_method`.
+
+   Tokens map a Bearer string to a capability object (readable/writable dataclasses, callable actions); v1 defines them in `MCP_Auth._loadTokens()`, swappable for a table-backed store. The Tokens tab chooses *where* the server resolves them (inline vs. a host dataclass) — the tokens themselves stay in code or that table. See the [Half B README](ai-context/README_halfB.md) for the exact shapes.
 
 ### Half A — the Node MCP server
 

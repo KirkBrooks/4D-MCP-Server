@@ -1,0 +1,1711 @@
+{
+	"$4d": {
+		"version": "1",
+		"kind": "form"
+	},
+	"destination": "detailScreen",
+	"windowTitle": "4D MCP Server — Settings",
+	"windowSizingX": "fixed",
+	"windowSizingY": "fixed",
+	"rightMargin": 0,
+	"bottomMargin": 0,
+	"events": [
+		"onLoad",
+		"onClick",
+		"onDoubleClick",
+		"onDataChange",
+		"onAfterEdit",
+		"onSelectionChange"
+	],
+	"method": "method.4dm",
+	"pages": [
+		{
+			"objects": {
+				"background": {
+					"type": "rectangle",
+					"top": 0,
+					"left": 0,
+					"width": 760,
+					"height": 600,
+					"fill": "#F4F4F4",
+					"stroke": "transparent"
+				},
+				"lblTarget": {
+					"type": "text",
+					"top": 12,
+					"left": 14,
+					"width": 40,
+					"height": 20,
+					"text": "File:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle"
+				},
+				"ddTarget": {
+					"type": "dropdown",
+					"top": 10,
+					"left": 56,
+					"width": 250,
+					"height": 22,
+					"dataSourceTypeHint": "object",
+					"dataSource": "Form.targetDD",
+					"tooltip": "Which copy of 4D-mcp-config.pref this window is editing.",
+					"events": [
+						"onDataChange"
+					]
+				},
+				"btnReveal": {
+					"type": "button",
+					"top": 9,
+					"left": 314,
+					"width": 90,
+					"height": 24,
+					"text": "Reveal…",
+					"tooltip": "Show the config file on disk.",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnReload": {
+					"type": "button",
+					"top": 9,
+					"left": 410,
+					"width": 90,
+					"height": 24,
+					"text": "Reload",
+					"tooltip": "Discard edits and re-read the file from disk.",
+					"events": [
+						"onClick"
+					]
+				},
+				"dirtyIndicator": {
+					"type": "input",
+					"top": 12,
+					"left": 520,
+					"width": 226,
+					"height": 18,
+					"dataSourceTypeHint": "text",
+					"dataSource": "Form.dirtyText",
+					"enterable": false,
+					"focusable": false,
+					"borderStyle": "none",
+					"fontFamily": "Segoe UI",
+					"fontSize": 11,
+					"stroke": "#B36B00",
+					"textAlign": "right",
+					"contextMenu": "none",
+					"fill": "transparent"
+				},
+				"tabs": {
+					"type": "tab",
+					"top": 42,
+					"left": 12,
+					"width": 736,
+					"height": 470,
+					"labels": [
+						"Server",
+						"Access",
+						"Tables",
+						"Methods",
+						"Tokens",
+						"Logging",
+						"JSON"
+					],
+					"dataSource": "Form.currentTab",
+					"dataSourceTypeHint": "integer",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"events": [
+						"onClick"
+					],
+					"action": "gotoPage"
+				},
+				"footerDivider": {
+					"type": "rectangle",
+					"top": 520,
+					"left": 0,
+					"width": 760,
+					"height": 1,
+					"fill": "#DADADA",
+					"stroke": "transparent"
+				},
+				"statusText": {
+					"type": "input",
+					"top": 526,
+					"left": 14,
+					"width": 470,
+					"height": 62,
+					"dataSourceTypeHint": "text",
+					"dataSource": "Form.statusText",
+					"enterable": false,
+					"focusable": false,
+					"borderStyle": "none",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#555555",
+					"contextMenu": "none",
+					"fill": "transparent",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				},
+				"btnCancel": {
+					"type": "button",
+					"top": 556,
+					"left": 496,
+					"width": 78,
+					"height": 30,
+					"text": "Cancel",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnApply": {
+					"type": "button",
+					"top": 556,
+					"left": 580,
+					"width": 78,
+					"height": 30,
+					"text": "Apply",
+					"tooltip": "Write the file and keep this window open.",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnSave": {
+					"type": "button",
+					"top": 556,
+					"left": 664,
+					"width": 84,
+					"height": 30,
+					"text": "Save",
+					"defaultButton": true,
+					"events": [
+						"onClick"
+					]
+				}
+			}
+		},
+		{
+			"objects": {
+				"gbServer": {
+					"type": "groupBox",
+					"text": "Server",
+					"top": 62,
+					"left": 24,
+					"width": 700,
+					"height": 250,
+					"fontWeight": "bold"
+				},
+				"cbEnabled": {
+					"type": "checkbox",
+					"top": 90,
+					"left": 44,
+					"width": 640,
+					"height": 22,
+					"text": "ENABLED — master switch",
+					"dataSource": "Form:C1466.enabled",
+					"dataSourceTypeHint": "boolean",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"events": [
+						"onDataChange"
+					]
+				},
+				"lblEnabledHint": {
+					"type": "text",
+					"top": 112,
+					"left": 66,
+					"width": 640,
+					"height": 16,
+					"text": "Off = the component loads but answers nothing (403 CAP_DENIED), valid token or not.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"verticalAlign": "middle"
+				},
+				"lblPort": {
+					"type": "text",
+					"top": 142,
+					"left": 44,
+					"width": 110,
+					"height": 20,
+					"text": "HTTP port:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle"
+				},
+				"inputPort": {
+					"type": "input",
+					"top": 143,
+					"left": 160,
+					"width": 80,
+					"height": 18,
+					"dataSourceTypeHint": "integer",
+					"dataSource": "Form:C1466.httpPort",
+					"borderStyle": "system",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"contextMenu": "automatic",
+					"fill": "#FFFFFF",
+					"events": [
+						"onAfterEdit"
+					]
+				},
+				"lblPortHint": {
+					"type": "text",
+					"top": 136,
+					"left": 250,
+					"width": 460,
+					"height": 32,
+					"text": "Port for the component's own web server, started by MCP_Initialize_Host. 0 = don't start one (serve /mcp from the host's web server). Read at startup only — a change needs a restart.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				},
+				"cbRequireHttps": {
+					"type": "checkbox",
+					"top": 182,
+					"left": 44,
+					"width": 640,
+					"height": 22,
+					"text": "REQUIRE_HTTPS — refuse requests over plain HTTP",
+					"dataSource": "Form:C1466.requireHttps",
+					"dataSourceTypeHint": "boolean",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"events": [
+						"onDataChange"
+					]
+				},
+				"lblHttpsHint": {
+					"type": "text",
+					"top": 204,
+					"left": 66,
+					"width": 640,
+					"height": 16,
+					"text": "Plain HTTP is answered with 403 CAP_DENIED. Set this off only for local development.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"verticalAlign": "middle"
+				},
+				"lblMaxBody": {
+					"type": "text",
+					"top": 234,
+					"left": 44,
+					"width": 110,
+					"height": 20,
+					"text": "Max body size:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle"
+				},
+				"inputMaxBody": {
+					"type": "input",
+					"top": 235,
+					"left": 160,
+					"width": 100,
+					"height": 18,
+					"dataSourceTypeHint": "integer",
+					"dataSource": "Form:C1466.maxBodySize",
+					"borderStyle": "system",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"contextMenu": "automatic",
+					"fill": "#FFFFFF",
+					"events": [
+						"onAfterEdit"
+					]
+				},
+				"lblMaxBodyHint": {
+					"type": "text",
+					"top": 234,
+					"left": 270,
+					"width": 440,
+					"height": 20,
+					"text": "Bytes. Oversize requests are rejected with BAD_PARAMS. 0 = unlimited.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"verticalAlign": "middle"
+				},
+				"lblEndpointHint": {
+					"type": "text",
+					"top": 266,
+					"left": 44,
+					"width": 660,
+					"height": 34,
+					"text": "The endpoint path is set in HTTPHandlers.json, and IP filtering belongs in the web server settings or a reverse proxy — neither is configurable here.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				},
+				"gbRuntime": {
+					"type": "groupBox",
+					"text": "Runtime",
+					"top": 326,
+					"left": 24,
+					"width": 700,
+					"height": 180,
+					"fontWeight": "bold"
+				},
+				"runtimeStatus": {
+					"type": "input",
+					"top": 352,
+					"left": 44,
+					"width": 660,
+					"height": 140,
+					"dataSourceTypeHint": "text",
+					"dataSource": "Form:C1466.runtimeStatus",
+					"enterable": false,
+					"focusable": false,
+					"borderStyle": "none",
+					"fontFamily": "Segoe UI",
+					"fontSize": 11,
+					"stroke": "#555555",
+					"contextMenu": "none",
+					"fill": "transparent",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				}
+			}
+		},
+		{
+			"objects": {
+				"gbVerbs": {
+					"type": "groupBox",
+					"text": "Verb gates",
+					"top": 62,
+					"left": 24,
+					"width": 700,
+					"height": 200,
+					"fontWeight": "bold"
+				},
+				"cbAllowRead": {
+					"type": "checkbox",
+					"top": 92,
+					"left": 44,
+					"width": 660,
+					"height": 22,
+					"text": "ALLOW_READ — get_schema_digest, query_entities, get_entity",
+					"dataSource": "Form:C1466.allowRead",
+					"dataSourceTypeHint": "boolean",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"events": [
+						"onDataChange"
+					]
+				},
+				"cbAllowWrite": {
+					"type": "checkbox",
+					"top": 122,
+					"left": 44,
+					"width": 660,
+					"height": 22,
+					"text": "ALLOW_WRITE — create_entity, update_entity",
+					"dataSource": "Form:C1466.allowWrite",
+					"dataSourceTypeHint": "boolean",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"events": [
+						"onDataChange"
+					]
+				},
+				"cbAllowDelete": {
+					"type": "checkbox",
+					"top": 152,
+					"left": 44,
+					"width": 660,
+					"height": 22,
+					"text": "ALLOW_DELETE — delete_entity",
+					"dataSource": "Form:C1466.allowDelete",
+					"dataSourceTypeHint": "boolean",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"events": [
+						"onDataChange"
+					]
+				},
+				"cbAllowCall": {
+					"type": "checkbox",
+					"top": 182,
+					"left": 44,
+					"width": 660,
+					"height": 22,
+					"text": "ALLOW_CALL_METHOD — call_method (the actions live on the Methods tab)",
+					"dataSource": "Form:C1466.allowCall",
+					"dataSourceTypeHint": "boolean",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"events": [
+						"onDataChange"
+					]
+				},
+				"lblVerbsHint": {
+					"type": "text",
+					"top": 212,
+					"left": 44,
+					"width": 660,
+					"height": 40,
+					"text": "These gates are checked before the token's own capability, so they bound every token — a wildcard token included. A token can never do more than the config allows.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				},
+				"gbPaging": {
+					"type": "groupBox",
+					"text": "Paging",
+					"top": 276,
+					"left": 24,
+					"width": 700,
+					"height": 130,
+					"fontWeight": "bold"
+				},
+				"lblDefaultLimit": {
+					"type": "text",
+					"top": 306,
+					"left": 44,
+					"width": 130,
+					"height": 20,
+					"text": "Default page size:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle"
+				},
+				"inputDefaultLimit": {
+					"type": "input",
+					"top": 307,
+					"left": 180,
+					"width": 70,
+					"height": 18,
+					"dataSourceTypeHint": "integer",
+					"dataSource": "Form:C1466.defaultLimit",
+					"borderStyle": "system",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"contextMenu": "automatic",
+					"fill": "#FFFFFF",
+					"events": [
+						"onAfterEdit"
+					]
+				},
+				"lblDefaultLimitHint": {
+					"type": "text",
+					"top": 306,
+					"left": 262,
+					"width": 440,
+					"height": 20,
+					"text": "Page size used by query_entities when the client sends no limit.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"verticalAlign": "middle"
+				},
+				"lblMaxLimit": {
+					"type": "text",
+					"top": 340,
+					"left": 44,
+					"width": 130,
+					"height": 20,
+					"text": "Max page size:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle"
+				},
+				"inputMaxLimit": {
+					"type": "input",
+					"top": 341,
+					"left": 180,
+					"width": 70,
+					"height": 18,
+					"dataSourceTypeHint": "integer",
+					"dataSource": "Form:C1466.maxLimit",
+					"borderStyle": "system",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"contextMenu": "automatic",
+					"fill": "#FFFFFF",
+					"events": [
+						"onAfterEdit"
+					]
+				},
+				"lblMaxLimitHint": {
+					"type": "text",
+					"top": 334,
+					"left": 262,
+					"width": 440,
+					"height": 32,
+					"text": "Hard cap on page size. Wire contract v1 fixes the ceiling at 80 — this may only be set lower, never higher.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				}
+			}
+		},
+		{
+			"objects": {
+				"cbRespect": {
+					"type": "checkbox",
+					"top": 66,
+					"left": 24,
+					"width": 680,
+					"height": 22,
+					"text": "RESPECT_4D_SCHEMA — honour the \"Expose as REST resource\" table and field settings",
+					"dataSource": "Form:C1466.respectSchema",
+					"dataSourceTypeHint": "boolean",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"events": [
+						"onDataChange"
+					]
+				},
+				"lblRespectHint": {
+					"type": "text",
+					"top": 88,
+					"left": 46,
+					"width": 680,
+					"height": 16,
+					"text": "Off = every table and field is exposed, so the lists below become your only filter.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"verticalAlign": "middle"
+				},
+				"lbTables": {
+					"type": "listbox",
+					"top": 112,
+					"left": 24,
+					"width": 700,
+					"height": 330,
+					"listboxType": "collection",
+					"sortable": false,
+					"movableRows": false,
+					"rowHeight": "20px",
+					"headerHeight": "22px",
+					"dataSource": "Form:C1466.tables",
+					"currentItemSource": "Form:C1466.currentTable",
+					"currentItemPositionSource": "Form:C1466.currentTableIndex",
+					"selectionMode": "single",
+					"stroke": "#000000",
+					"fill": "#FFFFFF",
+					"alternateFill": "#F7F7F7",
+					"fontFamily": "Segoe UI",
+					"fontSize": 11,
+					"events": [
+						"onSelectionChange",
+						"onDoubleClick"
+					],
+					"resizingMode": "legacy",
+					"columns": [
+						{
+							"name": "colTableName",
+							"dataSource": "This:C1470.name",
+							"width": 200,
+							"minWidth": 80,
+							"maxWidth": 32000,
+							"resizable": true,
+							"enterable": false,
+							"stroke": "#000000",
+							"fontFamily": "Segoe UI",
+							"fontSize": 11,
+							"header": {
+								"name": "hdrTableName",
+								"text": "Dataclass",
+								"fontFamily": "Segoe UI",
+								"fontSize": 11
+							},
+							"footer": {
+								"name": "ftTableName"
+							}
+						},
+						{
+							"name": "colTableExposed",
+							"dataSource": "This:C1470.exposedText",
+							"width": 90,
+							"minWidth": 50,
+							"maxWidth": 200,
+							"resizable": true,
+							"enterable": false,
+							"stroke": "#555555",
+							"fontFamily": "Segoe UI",
+							"fontSize": 11,
+							"textAlign": "center",
+							"header": {
+								"name": "hdrTableExposed",
+								"text": "4D exposed",
+								"fontFamily": "Segoe UI",
+								"fontSize": 11,
+								"textAlign": "center"
+							},
+							"footer": {
+								"name": "ftTableExposed"
+							}
+						},
+						{
+							"name": "colTableRule",
+							"dataSource": "This:C1470.rule",
+							"width": 110,
+							"minWidth": 60,
+							"maxWidth": 200,
+							"resizable": true,
+							"enterable": false,
+							"stroke": "#000000",
+							"fontFamily": "Segoe UI",
+							"fontSize": 11,
+							"header": {
+								"name": "hdrTableRule",
+								"text": "Rule",
+								"fontFamily": "Segoe UI",
+								"fontSize": 11
+							},
+							"footer": {
+								"name": "ftTableRule"
+							}
+						},
+						{
+							"name": "colTableEffective",
+							"dataSource": "This:C1470.effective",
+							"width": 110,
+							"minWidth": 60,
+							"maxWidth": 200,
+							"resizable": true,
+							"enterable": false,
+							"stroke": "#000000",
+							"fontFamily": "Segoe UI",
+							"fontSize": 11,
+							"fontWeight": "bold",
+							"header": {
+								"name": "hdrTableEffective",
+								"text": "Effective",
+								"fontFamily": "Segoe UI",
+								"fontSize": 11
+							},
+							"footer": {
+								"name": "ftTableEffective"
+							}
+						},
+						{
+							"name": "colTableNote",
+							"dataSource": "This:C1470.note",
+							"width": 150,
+							"minWidth": 60,
+							"maxWidth": 32000,
+							"resizable": true,
+							"enterable": false,
+							"stroke": "#777777",
+							"fontFamily": "Segoe UI",
+							"fontSize": 11,
+							"header": {
+								"name": "hdrTableNote",
+								"text": "Note",
+								"fontFamily": "Segoe UI",
+								"fontSize": 11
+							},
+							"footer": {
+								"name": "ftTableNote"
+							}
+						}
+					]
+				},
+				"btnRuleDefault": {
+					"type": "button",
+					"top": 455,
+					"left": 24,
+					"width": 84,
+					"height": 26,
+					"text": "Default",
+					"tooltip": "Neither listed nor blocked — RESPECT_4D_SCHEMA decides.",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnRuleWhitelist": {
+					"type": "button",
+					"top": 455,
+					"left": 114,
+					"width": 90,
+					"height": 26,
+					"text": "Whitelist",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnRuleBlacklist": {
+					"type": "button",
+					"top": 455,
+					"left": 210,
+					"width": 90,
+					"height": 26,
+					"text": "Blacklist",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnTablesClear": {
+					"type": "button",
+					"top": 455,
+					"left": 306,
+					"width": 90,
+					"height": 26,
+					"text": "Clear all",
+					"tooltip": "Reset every dataclass to Default (empties both lists).",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnTablesRefresh": {
+					"type": "button",
+					"top": 455,
+					"left": 402,
+					"width": 90,
+					"height": 26,
+					"text": "Refresh",
+					"tooltip": "Re-read the host datastore.",
+					"events": [
+						"onClick"
+					]
+				},
+				"lblTablesHint": {
+					"type": "text",
+					"top": 449,
+					"left": 500,
+					"width": 224,
+					"height": 40,
+					"text": "Double-click a row to cycle its rule. A non-empty whitelist overrides both the blacklist and RESPECT_4D_SCHEMA.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				}
+			}
+		},
+		{
+			"objects": {
+				"lblMethodsWarn": {
+					"type": "text",
+					"top": 62,
+					"left": 24,
+					"width": 700,
+					"height": 30,
+					"text": "Every entry here hands clients a door into host code. \"Method\" is the host project method call_method executes and is never sent to clients; the rest is documentation surfaced by get_schema_digest.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#8A5A00",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				},
+				"lbActions": {
+					"type": "listbox",
+					"top": 96,
+					"left": 24,
+					"width": 250,
+					"height": 300,
+					"listboxType": "collection",
+					"sortable": false,
+					"movableRows": false,
+					"rowHeight": "20px",
+					"headerHeight": "22px",
+					"dataSource": "Form:C1466.methods",
+					"currentItemSource": "Form:C1466.currentAction",
+					"currentItemPositionSource": "Form:C1466.currentActionIndex",
+					"selectionMode": "single",
+					"stroke": "#000000",
+					"fill": "#FFFFFF",
+					"alternateFill": "#F7F7F7",
+					"fontFamily": "Segoe UI",
+					"fontSize": 11,
+					"events": [
+						"onSelectionChange"
+					],
+					"resizingMode": "legacy",
+					"columns": [
+						{
+							"name": "colActionName",
+							"dataSource": "This:C1470.name",
+							"width": 120,
+							"minWidth": 60,
+							"maxWidth": 32000,
+							"resizable": true,
+							"enterable": false,
+							"stroke": "#000000",
+							"fontFamily": "Segoe UI",
+							"fontSize": 11,
+							"header": {
+								"name": "hdrActionName",
+								"text": "Action",
+								"fontFamily": "Segoe UI",
+								"fontSize": 11
+							},
+							"footer": {
+								"name": "ftActionName"
+							}
+						},
+						{
+							"name": "colActionMethod",
+							"dataSource": "This:C1470.method",
+							"width": 110,
+							"minWidth": 60,
+							"maxWidth": 32000,
+							"resizable": true,
+							"enterable": false,
+							"stroke": "#555555",
+							"fontFamily": "Segoe UI",
+							"fontSize": 11,
+							"header": {
+								"name": "hdrActionMethod",
+								"text": "Host method",
+								"fontFamily": "Segoe UI",
+								"fontSize": 11
+							},
+							"footer": {
+								"name": "ftActionMethod"
+							}
+						}
+					]
+				},
+				"btnAddAction": {
+					"type": "button",
+					"top": 405,
+					"left": 24,
+					"width": 60,
+					"height": 24,
+					"text": "Add",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnRemoveAction": {
+					"type": "button",
+					"top": 405,
+					"left": 90,
+					"width": 70,
+					"height": 24,
+					"text": "Remove",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnDupAction": {
+					"type": "button",
+					"top": 405,
+					"left": 166,
+					"width": 84,
+					"height": 24,
+					"text": "Duplicate",
+					"events": [
+						"onClick"
+					]
+				},
+				"lblNoActions": {
+					"type": "text",
+					"top": 200,
+					"left": 290,
+					"width": 434,
+					"height": 40,
+					"text": "No action selected. Click Add to expose a host method to clients.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 11,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic",
+					"hideWhen": "Form.hasAction=True"
+				},
+				"lblActionName": {
+					"type": "text",
+					"top": 98,
+					"left": 290,
+					"width": 70,
+					"height": 18,
+					"text": "Action:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle",
+					"hideWhen": "Form.hasAction=False"
+				},
+				"inputActionName": {
+					"type": "input",
+					"top": 99,
+					"left": 364,
+					"width": 250,
+					"height": 18,
+					"dataSourceTypeHint": "text",
+					"dataSource": "Form:C1466.currentAction.name",
+					"borderStyle": "system",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"placeholder": "client-visible action name",
+					"contextMenu": "automatic",
+					"fill": "#FFFFFF",
+					"hideWhen": "Form.hasAction=False",
+					"events": [
+						"onAfterEdit"
+					]
+				},
+				"lblHostMethod": {
+					"type": "text",
+					"top": 126,
+					"left": 290,
+					"width": 70,
+					"height": 18,
+					"text": "Method:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle",
+					"hideWhen": "Form.hasAction=False"
+				},
+				"inputHostMethod": {
+					"type": "input",
+					"top": 127,
+					"left": 364,
+					"width": 250,
+					"height": 18,
+					"dataSourceTypeHint": "text",
+					"dataSource": "Form:C1466.currentAction.method",
+					"borderStyle": "system",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"placeholder": "host project method (never sent to clients)",
+					"contextMenu": "automatic",
+					"fill": "#FFFFFF",
+					"hideWhen": "Form.hasAction=False",
+					"events": [
+						"onAfterEdit"
+					]
+				},
+				"lblReturns": {
+					"type": "text",
+					"top": 154,
+					"left": 290,
+					"width": 70,
+					"height": 18,
+					"text": "Returns:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle",
+					"hideWhen": "Form.hasAction=False"
+				},
+				"inputReturns": {
+					"type": "input",
+					"top": 155,
+					"left": 364,
+					"width": 250,
+					"height": 18,
+					"dataSourceTypeHint": "text",
+					"dataSource": "Form:C1466.currentAction.return",
+					"borderStyle": "system",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"placeholder": "e.g. object {count}",
+					"contextMenu": "automatic",
+					"fill": "#FFFFFF",
+					"hideWhen": "Form.hasAction=False",
+					"events": [
+						"onAfterEdit"
+					]
+				},
+				"lblPurpose": {
+					"type": "text",
+					"top": 182,
+					"left": 290,
+					"width": 70,
+					"height": 18,
+					"text": "Purpose:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle",
+					"hideWhen": "Form.hasAction=False"
+				},
+				"inputPurpose": {
+					"type": "input",
+					"top": 182,
+					"left": 364,
+					"width": 360,
+					"height": 44,
+					"dataSourceTypeHint": "text",
+					"dataSource": "Form:C1466.currentAction.purpose",
+					"borderStyle": "system",
+					"fontFamily": "Segoe UI",
+					"fontSize": 11,
+					"multiline": "yes",
+					"wordwrap": "automatic",
+					"placeholder": "what this action is for — shown to clients",
+					"contextMenu": "automatic",
+					"fill": "#FFFFFF",
+					"hideWhen": "Form.hasAction=False",
+					"events": [
+						"onAfterEdit"
+					]
+				},
+				"lblArgs": {
+					"type": "text",
+					"top": 236,
+					"left": 290,
+					"width": 300,
+					"height": 18,
+					"text": "Positional arguments",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"fontWeight": "bold",
+					"verticalAlign": "middle",
+					"hideWhen": "Form.hasAction=False"
+				},
+				"lbArgs": {
+					"type": "listbox",
+					"top": 258,
+					"left": 290,
+					"width": 434,
+					"height": 138,
+					"listboxType": "collection",
+					"sortable": false,
+					"movableRows": false,
+					"rowHeight": "20px",
+					"headerHeight": "22px",
+					"dataSource": "Form:C1466.args",
+					"currentItemSource": "Form:C1466.currentArg",
+					"currentItemPositionSource": "Form:C1466.currentArgIndex",
+					"selectionMode": "single",
+					"stroke": "#000000",
+					"fill": "#FFFFFF",
+					"alternateFill": "#F7F7F7",
+					"fontFamily": "Segoe UI",
+					"fontSize": 11,
+					"hideWhen": "Form.hasAction=False",
+					"events": [
+						"onSelectionChange",
+						"onDataChange"
+					],
+					"resizingMode": "legacy",
+					"columns": [
+						{
+							"name": "colArgName",
+							"dataSource": "This:C1470.name",
+							"width": 110,
+							"minWidth": 50,
+							"maxWidth": 32000,
+							"resizable": true,
+							"enterable": true,
+							"stroke": "#000000",
+							"fontFamily": "Segoe UI",
+							"fontSize": 11,
+							"header": {
+								"name": "hdrArgName",
+								"text": "Name",
+								"fontFamily": "Segoe UI",
+								"fontSize": 11
+							},
+							"footer": {
+								"name": "ftArgName"
+							}
+						},
+						{
+							"name": "colArgType",
+							"dataSource": "This:C1470.type",
+							"width": 84,
+							"minWidth": 50,
+							"maxWidth": 200,
+							"resizable": true,
+							"enterable": true,
+							"stroke": "#000000",
+							"fontFamily": "Segoe UI",
+							"fontSize": 11,
+							"tooltip": "text | number | boolean | object | collection",
+							"header": {
+								"name": "hdrArgType",
+								"text": "Type",
+								"fontFamily": "Segoe UI",
+								"fontSize": 11
+							},
+							"footer": {
+								"name": "ftArgType"
+							}
+						},
+						{
+							"name": "colArgRequired",
+							"dataSource": "This:C1470.required",
+							"dataSourceTypeHint": "boolean",
+							"controlType": "checkbox",
+							"width": 50,
+							"minWidth": 40,
+							"maxWidth": 80,
+							"resizable": false,
+							"enterable": true,
+							"stroke": "#000000",
+							"fontFamily": "Segoe UI",
+							"fontSize": 11,
+							"textAlign": "center",
+							"header": {
+								"name": "hdrArgRequired",
+								"text": "Req.",
+								"fontFamily": "Segoe UI",
+								"fontSize": 11,
+								"textAlign": "center"
+							},
+							"footer": {
+								"name": "ftArgRequired"
+							}
+						},
+						{
+							"name": "colArgPurpose",
+							"dataSource": "This:C1470.purpose",
+							"width": 150,
+							"minWidth": 60,
+							"maxWidth": 32000,
+							"resizable": true,
+							"enterable": true,
+							"stroke": "#555555",
+							"fontFamily": "Segoe UI",
+							"fontSize": 11,
+							"header": {
+								"name": "hdrArgPurpose",
+								"text": "Purpose",
+								"fontFamily": "Segoe UI",
+								"fontSize": 11
+							},
+							"footer": {
+								"name": "ftArgPurpose"
+							}
+						}
+					]
+				},
+				"btnAddArg": {
+					"type": "button",
+					"top": 405,
+					"left": 290,
+					"width": 76,
+					"height": 24,
+					"text": "Add arg",
+					"hideWhen": "Form.hasAction=False",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnRemoveArg": {
+					"type": "button",
+					"top": 405,
+					"left": 372,
+					"width": 76,
+					"height": 24,
+					"text": "Remove",
+					"hideWhen": "Form.hasAction=False",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnArgUp": {
+					"type": "button",
+					"top": 405,
+					"left": 454,
+					"width": 56,
+					"height": 24,
+					"text": "Up",
+					"hideWhen": "Form.hasAction=False",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnArgDown": {
+					"type": "button",
+					"top": 405,
+					"left": 516,
+					"width": 56,
+					"height": 24,
+					"text": "Down",
+					"hideWhen": "Form.hasAction=False",
+					"events": [
+						"onClick"
+					]
+				},
+				"lblArgsHint": {
+					"type": "text",
+					"top": 435,
+					"left": 290,
+					"width": 434,
+					"height": 50,
+					"text": "Args bind positionally — the name is documentation only. Type must be one of text, number, boolean, object, collection. Optional args have to come last (4D method semantics).",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic",
+					"hideWhen": "Form.hasAction=False"
+				},
+				"lblCallDisabled": {
+					"type": "text",
+					"top": 435,
+					"left": 24,
+					"width": 250,
+					"height": 50,
+					"text": "ALLOW_CALL_METHOD is off, so nothing here is callable — this list is ignored entirely.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#8A5A00",
+					"multiline": "yes",
+					"wordwrap": "automatic",
+					"hideWhen": "Form.allowCall=True"
+				}
+			}
+		},
+		{
+			"objects": {
+				"gbStore": {
+					"type": "groupBox",
+					"text": "Token store",
+					"top": 62,
+					"left": 24,
+					"width": 700,
+					"height": 210,
+					"fontWeight": "bold"
+				},
+				"lblTokenStore": {
+					"type": "text",
+					"top": 92,
+					"left": 44,
+					"width": 120,
+					"height": 20,
+					"text": "Resolve tokens in:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle"
+				},
+				"ddTokenStore": {
+					"type": "dropdown",
+					"top": 90,
+					"left": 172,
+					"width": 160,
+					"height": 22,
+					"dataSourceTypeHint": "object",
+					"dataSource": "Form:C1466.tokenStoreDD",
+					"events": [
+						"onDataChange"
+					]
+				},
+				"lblTokenStoreHint": {
+					"type": "text",
+					"top": 118,
+					"left": 44,
+					"width": 660,
+					"height": 32,
+					"text": "\"inline\" = the object built by MCP_Auth._loadTokens(). \"table\" = look up the Bearer token in the host dataclass named below.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				},
+				"lblTokenTable": {
+					"type": "text",
+					"top": 160,
+					"left": 44,
+					"width": 120,
+					"height": 20,
+					"text": "Token dataclass:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle",
+					"hideWhen": "Form.showTokenTable=False"
+				},
+				"inputTokenTable": {
+					"type": "input",
+					"top": 161,
+					"left": 172,
+					"width": 220,
+					"height": 18,
+					"dataSourceTypeHint": "text",
+					"dataSource": "Form:C1466.tokenTable",
+					"borderStyle": "system",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"placeholder": "host dataclass name",
+					"contextMenu": "automatic",
+					"fill": "#FFFFFF",
+					"hideWhen": "Form.showTokenTable=False",
+					"events": [
+						"onAfterEdit"
+					]
+				},
+				"lblTokenTableHint": {
+					"type": "text",
+					"top": 186,
+					"left": 44,
+					"width": 660,
+					"height": 32,
+					"text": "The lookup must return the same capability shape as _loadTokens(): { token_id, read, write, call }.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic",
+					"hideWhen": "Form.showTokenTable=False"
+				},
+				"lblTokensNote": {
+					"type": "text",
+					"top": 226,
+					"left": 44,
+					"width": 660,
+					"height": 34,
+					"text": "The tokens themselves are not edited here — they live in MCP_Auth (inline) or in that host dataclass. This file only chooses where the server looks.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				},
+				"gbRate": {
+					"type": "groupBox",
+					"text": "Rate limiting",
+					"top": 286,
+					"left": 24,
+					"width": 700,
+					"height": 120,
+					"fontWeight": "bold"
+				},
+				"lblRate": {
+					"type": "text",
+					"top": 316,
+					"left": 44,
+					"width": 140,
+					"height": 20,
+					"text": "Requests per minute:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle"
+				},
+				"inputRate": {
+					"type": "input",
+					"top": 317,
+					"left": 192,
+					"width": 80,
+					"height": 18,
+					"dataSourceTypeHint": "integer",
+					"dataSource": "Form:C1466.rateLimit",
+					"borderStyle": "system",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"contextMenu": "automatic",
+					"fill": "#FFFFFF",
+					"events": [
+						"onAfterEdit"
+					]
+				},
+				"lblRateHint": {
+					"type": "text",
+					"top": 344,
+					"left": 44,
+					"width": 660,
+					"height": 34,
+					"text": "Per token, in a fixed one-minute window. Exceeding it returns 429 RATE_LIMITED. 0 = unlimited.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				}
+			}
+		},
+		{
+			"objects": {
+				"gbLogs": {
+					"type": "groupBox",
+					"text": "Logs",
+					"top": 62,
+					"left": 24,
+					"width": 700,
+					"height": 220,
+					"fontWeight": "bold"
+				},
+				"lblLogLevel": {
+					"type": "text",
+					"top": 92,
+					"left": 44,
+					"width": 100,
+					"height": 20,
+					"text": "Log level:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle"
+				},
+				"ddLogLevel": {
+					"type": "dropdown",
+					"top": 90,
+					"left": 152,
+					"width": 140,
+					"height": 22,
+					"dataSourceTypeHint": "object",
+					"dataSource": "Form:C1466.logLevelDD",
+					"events": [
+						"onDataChange"
+					]
+				},
+				"lblLogLevelHint": {
+					"type": "text",
+					"top": 90,
+					"left": 302,
+					"width": 400,
+					"height": 32,
+					"text": "\"error\" logs only failed requests; \"info\" and \"debug\" log all. LOG_REQUESTS must also be on.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				},
+				"cbLogRequests": {
+					"type": "checkbox",
+					"top": 132,
+					"left": 44,
+					"width": 660,
+					"height": 22,
+					"text": "LOG_REQUESTS — write the request log",
+					"dataSource": "Form:C1466.logRequests",
+					"dataSourceTypeHint": "boolean",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"events": [
+						"onDataChange"
+					]
+				},
+				"lblLogReqHint": {
+					"type": "text",
+					"top": 154,
+					"left": 66,
+					"width": 640,
+					"height": 16,
+					"text": "Logs/mcp_requests.jsonl in the host: ts, action, token_id, status, error code, duration ms.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"verticalAlign": "middle"
+				},
+				"cbAuditWrites": {
+					"type": "checkbox",
+					"top": 182,
+					"left": 44,
+					"width": 660,
+					"height": 22,
+					"text": "AUDIT_WRITES — durable audit of every successful mutation",
+					"dataSource": "Form:C1466.auditWrites",
+					"dataSourceTypeHint": "boolean",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"events": [
+						"onDataChange"
+					]
+				},
+				"lblAuditHint": {
+					"type": "text",
+					"top": 204,
+					"left": 66,
+					"width": 640,
+					"height": 16,
+					"text": "create / update / delete / call with token_id, to Logs/mcp_audit.jsonl. Independent of LOG_LEVEL.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"verticalAlign": "middle"
+				},
+				"btnOpenLogs": {
+					"type": "button",
+					"top": 234,
+					"left": 44,
+					"width": 160,
+					"height": 26,
+					"text": "Open Logs folder",
+					"events": [
+						"onClick"
+					]
+				},
+				"gbHooks": {
+					"type": "groupBox",
+					"text": "Host hooks",
+					"top": 296,
+					"left": 24,
+					"width": 700,
+					"height": 190,
+					"fontWeight": "bold"
+				},
+				"lblOnError": {
+					"type": "text",
+					"top": 326,
+					"left": 44,
+					"width": 120,
+					"height": 20,
+					"text": "ON_ERROR_CALL:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle"
+				},
+				"inputOnError": {
+					"type": "input",
+					"top": 327,
+					"left": 172,
+					"width": 240,
+					"height": 18,
+					"dataSourceTypeHint": "text",
+					"dataSource": "Form:C1466.onErrorCall",
+					"borderStyle": "system",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"placeholder": "host method name (optional)",
+					"contextMenu": "automatic",
+					"fill": "#FFFFFF",
+					"events": [
+						"onAfterEdit"
+					]
+				},
+				"lblOnErrorHint": {
+					"type": "text",
+					"top": 352,
+					"left": 44,
+					"width": 660,
+					"height": 16,
+					"text": "Called on INTERNAL errors with { ts, action, code, message }. Empty = none.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"verticalAlign": "middle"
+				},
+				"lblOnRequest": {
+					"type": "text",
+					"top": 388,
+					"left": 44,
+					"width": 120,
+					"height": 20,
+					"text": "ON_REQUEST_CALL:",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"verticalAlign": "middle"
+				},
+				"inputOnRequest": {
+					"type": "input",
+					"top": 389,
+					"left": 172,
+					"width": 240,
+					"height": 18,
+					"dataSourceTypeHint": "text",
+					"dataSource": "Form:C1466.onRequestCall",
+					"borderStyle": "system",
+					"fontFamily": "Segoe UI",
+					"fontSize": 12,
+					"placeholder": "host method name (optional)",
+					"contextMenu": "automatic",
+					"fill": "#FFFFFF",
+					"events": [
+						"onAfterEdit"
+					]
+				},
+				"lblOnRequestHint": {
+					"type": "text",
+					"top": 414,
+					"left": 44,
+					"width": 660,
+					"height": 48,
+					"text": "Called for each request that already carries a valid, resolved token, with { action, token_id }. Return { deny: true, message: \"…\" } to refuse the request (CAP_DENIED). Hook errors never block traffic.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				}
+			}
+		},
+		{
+			"objects": {
+				"lblJsonHint": {
+					"type": "text",
+					"top": 62,
+					"left": 24,
+					"width": 700,
+					"height": 30,
+					"text": "The document as it will be written. Comments are preserved and any key this window doesn't know about is kept untouched.",
+					"fontFamily": "Segoe UI",
+					"fontSize": 10,
+					"stroke": "#777777",
+					"multiline": "yes",
+					"wordwrap": "automatic"
+				},
+				"inputJson": {
+					"type": "input",
+					"top": 96,
+					"left": 24,
+					"width": 693,
+					"height": 340,
+					"dataSourceTypeHint": "text",
+					"dataSource": "Form:C1466.jsonPreview",
+					"enterable": false,
+					"borderStyle": "system",
+					"fontFamily": "Consolas",
+					"fontSize": 11,
+					"multiline": "yes",
+					"wordwrap": "no",
+					"scrollbarVertical": "automatic",
+					"scrollbarHorizontal": "automatic",
+					"contextMenu": "automatic",
+					"fill": "#FFFFFF"
+				},
+				"btnJsonRefresh": {
+					"type": "button",
+					"top": 468,
+					"left": 24,
+					"width": 90,
+					"height": 26,
+					"text": "Refresh",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnValidate": {
+					"type": "button",
+					"top": 468,
+					"left": 120,
+					"width": 110,
+					"height": 26,
+					"text": "Validate now",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnAddMissing": {
+					"type": "button",
+					"top": 468,
+					"left": 236,
+					"width": 150,
+					"height": 26,
+					"text": "Add missing settings",
+					"tooltip": "Copy any setting the component ships that this file is missing.",
+					"events": [
+						"onClick"
+					]
+				},
+				"btnResetDefaults": {
+					"type": "button",
+					"top": 468,
+					"left": 392,
+					"width": 200,
+					"height": 26,
+					"text": "Reset to component defaults…",
+					"events": [
+						"onClick"
+					]
+				}
+			}
+		}
+	],
+	"geometryStamp": 22,
+	"editor": {
+		"activeView": "View 1",
+		"defaultView": "View 1",
+		"views": {
+			"View 1": {}
+		}
+	},
+	"shared": false
+}
